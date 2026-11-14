@@ -11,6 +11,10 @@ A shared Chrome browser for multiple AI agents. Log in once, give each agent its
 
 Requires **Node.js 22+** and **Google Chrome or Chromium** on macOS or Linux.
 
+**Linux:** use v0.1.1 or later. v0.1.0 incorrectly supplied a page target's `browserContextId` to default-context download commands, which can reject startup. v0.1.1 omits that parameter for every platform and preserves per-agent download isolation. [Platform validation and CI](docs/testing.md) distinguish measured results from deployment guidance.
+
+v0.1.1 validation: the full four-test suite passes on macOS Chrome 157 (headed and headless) and Ubuntu 22.04 Chrome 136/146 (headless). [Request-level evidence](docs/validation/v0.1.1/README.md).
+
 ## Quick start
 
 Run directly from GitHub:
