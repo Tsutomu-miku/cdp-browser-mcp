@@ -126,3 +126,7 @@ args = ["--yes", "github:Tsutomu-miku/cdp-browser-mcp", "mcp", "--agent", "codex
 ```
 
 After a browser restart, refs and leases from previous tabs are invalid. Use `browser_tabs` to list or create tabs before continuing.
+
+## Extension backend
+
+Set `backend: "extension"`, a matching `extensionId`, and a separate `stateDir`. See [manual setup and MCP example](extension-backend.md). `--backend` can also select the backend; CDP remains the default. `available`, `attach --chrome-tab`, and `headers` are extension-only CLI operations. `screenshot` is available in both backends; the extension requires a toolbar activeTab grant.

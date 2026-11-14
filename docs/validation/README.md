@@ -17,3 +17,5 @@ Each run includes concurrent MCP operations, shared cookies, ordinary resources,
 - [Package manifest](pack.json): packaged files and integrity from an installed-bin smoke test.
 
 These are captured records, not files rewritten by every test run. Current test output is written to `test-results/`. See [testing](../testing.md) for commands and platform scope.
+
+- [Extension PoC: request attribution, native recovery and screenshot](extension-poc/README.md): independent headed profile; includes measured worker limits and platform caveats.

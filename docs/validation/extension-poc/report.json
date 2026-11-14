@@ -1,0 +1,968 @@
+{
+  "testedAt": "2026-11-14T17:57:18.036Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "browserVersion": "148.0.7778.96",
+  "headed": true,
+  "independentProfile": true,
+  "loginMethod": "Synthetic page form submitted by Playwright before MCP attach; no real account or human login claimed",
+  "backendControl": "MCP -> broker -> Unix native bridge -> standard Chrome native messaging -> own MV3 extension; CDP used only by test harness",
+  "loginReused": true,
+  "perTabHeaderIsolation": true,
+  "dynamicHeaderReplacementAndRemoval": true,
+  "tabCloseRuleCleanup": true,
+  "activeTabScreenshot": true,
+  "permissions": {
+    "directory": "0700",
+    "sockets": "0600",
+    "tokens": "0600"
+  },
+  "nativeBefore": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 3,
+    "hostPid": 79019,
+    "generation": 1,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "nativeAfter": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 3,
+    "hostPid": 79046,
+    "generation": 2,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "timeoutBefore": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 3,
+    "hostPid": 79046,
+    "generation": 2,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "timeoutAfter": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 3,
+    "hostPid": 79083,
+    "generation": 3,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "timeoutRecovered": true,
+  "timedOutNavigationRequests": 1,
+  "initialHealth": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 0,
+    "hostPid": 79019,
+    "generation": 1,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "rulesBeforeClose": {
+    "version": 1,
+    "extensionId": "hgdggebdmneleibcjjdkplikbplejhif",
+    "rules": [
+      {
+        "id": 1941236949,
+        "tabIds": [1941236948]
+      },
+      {
+        "id": 1941236950,
+        "tabIds": [1941236949]
+      }
+    ],
+    "backgroundHeaders": "unmodified"
+  },
+  "rulesAfterClose": {
+    "version": 1,
+    "extensionId": "hgdggebdmneleibcjjdkplikbplejhif",
+    "rules": [
+      {
+        "id": 1941236950,
+        "tabIds": [1941236949]
+      }
+    ],
+    "backgroundHeaders": "unmodified"
+  },
+  "workerBoundary": "ServiceWorker forwarded/background, SharedWorker and extension background requests observed with tabId=-1 and no injected lane header. No global rule.",
+  "multiLaneSupport": "Diagnostic two-tab experiment only; extension mode is single-lane, CDP is required for parallel lanes",
+  "requests": [
+    {
+      "seq": 1,
+      "path": "/login",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": false,
+      "destination": "document"
+    },
+    {
+      "seq": 2,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": false,
+      "destination": "image"
+    },
+    {
+      "seq": 3,
+      "path": "/session",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": false,
+      "destination": "document"
+    },
+    {
+      "seq": 4,
+      "path": "/private",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 5,
+      "path": "/style.css",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "style"
+    },
+    {
+      "seq": 6,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 7,
+      "path": "/probe",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 8,
+      "path": "/style.css",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "style"
+    },
+    {
+      "seq": 9,
+      "path": "/pixel.svg",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 10,
+      "path": "/script.js",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "script"
+    },
+    {
+      "seq": 11,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "fetch",
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 12,
+      "path": "/frame",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "iframe"
+    },
+    {
+      "seq": 13,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "xhr",
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 14,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "beacon",
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 15,
+      "path": "/dedicated.js",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "worker"
+    },
+    {
+      "seq": 16,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "frame-fetch",
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 17,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "dedicated-fetch",
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 18,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 19,
+      "path": "/probe",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 20,
+      "path": "/style.css",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "style"
+    },
+    {
+      "seq": 21,
+      "path": "/pixel.svg",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 22,
+      "path": "/script.js",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "script"
+    },
+    {
+      "seq": 23,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "fetch",
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 24,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "xhr",
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 25,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "beacon",
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 26,
+      "path": "/frame",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "iframe"
+    },
+    {
+      "seq": 27,
+      "path": "/dedicated.js",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "worker"
+    },
+    {
+      "seq": 28,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "frame-fetch",
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 29,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "dedicated-fetch",
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 30,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "green",
+      "custom": "beta",
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 31,
+      "path": "/echo",
+      "tag": "changed",
+      "kind": null,
+      "lane": "amber",
+      "custom": null,
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 32,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "amber",
+      "custom": null,
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 33,
+      "path": "/echo",
+      "tag": "removed",
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 34,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 35,
+      "path": "/workers",
+      "tag": "B",
+      "kind": null,
+      "lane": "green",
+      "custom": null,
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 36,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "green",
+      "custom": null,
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 37,
+      "path": "/sw.js",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "serviceworker"
+    },
+    {
+      "seq": 38,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "sw-background",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 39,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "sw-forwarded",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 40,
+      "path": "/shared.js",
+      "tag": null,
+      "kind": null,
+      "lane": "green",
+      "custom": null,
+      "loggedIn": true,
+      "destination": "sharedworker"
+    },
+    {
+      "seq": 41,
+      "path": "/echo",
+      "tag": "B",
+      "kind": "shared-background",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 42,
+      "path": "/workers",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 43,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "sw-background",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 44,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "sw-forwarded",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 45,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 46,
+      "path": "/echo",
+      "tag": "A",
+      "kind": "shared-background",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 47,
+      "path": "/echo",
+      "tag": "observer",
+      "kind": "extension-background",
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "empty"
+    },
+    {
+      "seq": 48,
+      "path": "/echo",
+      "tag": "after-reconnect",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 49,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "image"
+    },
+    {
+      "seq": 50,
+      "path": "/stall",
+      "tag": null,
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 51,
+      "path": "/sw.js",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "serviceworker"
+    },
+    {
+      "seq": 52,
+      "path": "/echo",
+      "tag": "after-timeout",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 53,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "image"
+    }
+  ],
+  "attribution": [
+    {
+      "path": "/login",
+      "search": "",
+      "tabId": 1941236947,
+      "type": "main_frame",
+      "requestId": "1"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236947,
+      "type": "image",
+      "requestId": "2"
+    },
+    {
+      "path": "/session",
+      "search": "",
+      "tabId": 1941236947,
+      "type": "main_frame",
+      "requestId": "3"
+    },
+    {
+      "path": "/private",
+      "search": "",
+      "tabId": 1941236947,
+      "type": "main_frame",
+      "requestId": "3"
+    },
+    {
+      "path": "/style.css",
+      "search": "",
+      "tabId": 1941236947,
+      "type": "stylesheet",
+      "requestId": "4"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236947,
+      "type": "image",
+      "requestId": "5"
+    },
+    {
+      "path": "/probe",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "main_frame",
+      "requestId": "6"
+    },
+    {
+      "path": "/style.css",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "stylesheet",
+      "requestId": "7"
+    },
+    {
+      "path": "/pixel.svg",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "image",
+      "requestId": "8"
+    },
+    {
+      "path": "/script.js",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "script",
+      "requestId": "9"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=fetch&tag=A",
+      "tabId": 1941236948,
+      "type": "xmlhttprequest",
+      "requestId": "10"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=xhr&tag=A",
+      "tabId": 1941236948,
+      "type": "xmlhttprequest",
+      "requestId": "11"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=beacon&tag=A",
+      "tabId": 1941236948,
+      "type": "ping",
+      "requestId": "12"
+    },
+    {
+      "path": "/frame",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "sub_frame",
+      "requestId": "13"
+    },
+    {
+      "path": "/dedicated.js",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "script",
+      "requestId": "14"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=frame-fetch&tag=A",
+      "tabId": 1941236948,
+      "type": "xmlhttprequest",
+      "requestId": "15"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=dedicated-fetch&tag=A",
+      "tabId": 1941236948,
+      "type": "xmlhttprequest",
+      "requestId": "16"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236948,
+      "type": "image",
+      "requestId": "17"
+    },
+    {
+      "path": "/probe",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "main_frame",
+      "requestId": "18"
+    },
+    {
+      "path": "/style.css",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "stylesheet",
+      "requestId": "19"
+    },
+    {
+      "path": "/pixel.svg",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "image",
+      "requestId": "20"
+    },
+    {
+      "path": "/script.js",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "script",
+      "requestId": "21"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=fetch&tag=B",
+      "tabId": 1941236949,
+      "type": "xmlhttprequest",
+      "requestId": "22"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=xhr&tag=B",
+      "tabId": 1941236949,
+      "type": "xmlhttprequest",
+      "requestId": "23"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=beacon&tag=B",
+      "tabId": 1941236949,
+      "type": "ping",
+      "requestId": "24"
+    },
+    {
+      "path": "/dedicated.js",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "script",
+      "requestId": "25"
+    },
+    {
+      "path": "/frame",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "sub_frame",
+      "requestId": "26"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=frame-fetch&tag=B",
+      "tabId": 1941236949,
+      "type": "xmlhttprequest",
+      "requestId": "27"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=dedicated-fetch&tag=B",
+      "tabId": 1941236949,
+      "type": "xmlhttprequest",
+      "requestId": "28"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236949,
+      "type": "image",
+      "requestId": "29"
+    },
+    {
+      "path": "/echo",
+      "search": "?tag=changed",
+      "tabId": 1941236949,
+      "type": "main_frame",
+      "requestId": "30"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236949,
+      "type": "image",
+      "requestId": "31"
+    },
+    {
+      "path": "/echo",
+      "search": "?tag=removed",
+      "tabId": 1941236949,
+      "type": "main_frame",
+      "requestId": "32"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236949,
+      "type": "image",
+      "requestId": "33"
+    },
+    {
+      "path": "/workers",
+      "search": "?tag=B",
+      "tabId": 1941236949,
+      "type": "main_frame",
+      "requestId": "34"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236949,
+      "type": "image",
+      "requestId": "35"
+    },
+    {
+      "path": "/sw.js",
+      "search": "",
+      "tabId": -1,
+      "type": "script",
+      "requestId": "36"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=sw-background&tag=B",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "37"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=sw-forwarded&tag=B",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "38"
+    },
+    {
+      "path": "/shared.js",
+      "search": "",
+      "tabId": 1941236949,
+      "type": "script",
+      "requestId": "39"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=shared-background&tag=B",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "40"
+    },
+    {
+      "path": "/workers",
+      "search": "?tag=A",
+      "tabId": 1941236948,
+      "type": "main_frame",
+      "requestId": "41"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=sw-background&tag=A",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "42"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=sw-forwarded&tag=A",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "43"
+    },
+    {
+      "path": "/favicon.ico",
+      "search": "",
+      "tabId": 1941236948,
+      "type": "image",
+      "requestId": "44"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=shared-background&tag=A",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "45"
+    },
+    {
+      "path": "/echo",
+      "search": "?kind=extension-background&tag=observer",
+      "tabId": -1,
+      "type": "xmlhttprequest",
+      "requestId": "46"
+    }
+  ]
+}

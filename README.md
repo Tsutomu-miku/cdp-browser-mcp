@@ -7,6 +7,8 @@ A shared Chrome browser for multiple AI agents. Log in once, give each agent its
 - **Per-tab headers:** use custom headers or named presets without changing another agent's requests.
 - **Standard MCP tools:** navigate, click, type, snapshot, extract, and manage tabs through Playwright.
 
+**Extension PoC (`0.2.0-extension-poc.1`):** a second, entirely local backend can reuse a profile you explicitly load it into. It is intended for one lane; parallel lanes continue to use CDP. See [manual extension/native-host setup, permissions, measured worker limits, and MCP configuration](docs/extension-backend.md). No extension is installed automatically. The default remains CDP; the existing `v0.1.0` tag and npx entry remain available.
+
 Requires **Node.js 22+** and **Google Chrome or Chromium** on macOS or Linux.
 
 ## Quick start
@@ -120,25 +122,27 @@ For reusable presets, use [`--config` and `--lane`](docs/configuration.md#header
 
 ## Tools
 
-| Tool                                   | Purpose                                         |
-| -------------------------------------- | ----------------------------------------------- |
-| `browser_navigate`                     | Open a URL and return an accessibility snapshot |
-| `browser_click` / `browser_type`       | Interact using snapshot refs or CSS selectors   |
-| `browser_snapshot` / `browser_extract` | Read the current page                           |
-| `browser_tabs` / `browser_close`       | Manage this agent's tabs                        |
-| `browser_downloads`                    | List this agent's downloads                     |
-| `browser_lease`                        | Extend the current tab's lease                  |
+| Tool                                   | Purpose                                          |
+| -------------------------------------- | ------------------------------------------------ |
+| `browser_navigate`                     | Open a URL and return an accessibility snapshot  |
+| `browser_click` / `browser_type`       | Interact using snapshot refs or CSS selectors    |
+| `browser_snapshot` / `browser_extract` | Read the current page                            |
+| `browser_tabs` / `browser_close`       | Manage this agent's tabs                         |
+| `browser_downloads`                    | List this agent's downloads                      |
+| `browser_take_screenshot`              | Capture a tab (extension requires toolbar grant) |
+| `browser_lease`                        | Extend the current tab's lease                   |
 
 Tool names follow Playwright MCP conventions. This project provides a subset, with tab ownership and shared-session behavior added.
 
 ## Limits
 
-**SharedWorker is disabled and ServiceWorker requests are blocked.** Those workers belong to an origin, so their background traffic cannot safely inherit a single tab's headers. Sites that require offline caches, push, or other ServiceWorker features may not work.
+**In the default CDP backend, SharedWorker is disabled and ServiceWorker requests are blocked.** Those workers belong to an origin, so their background traffic cannot safely inherit a single tab's headers. Sites that require offline caches, push, or other ServiceWorker features may not work.
 
 Cookies and same-origin storage are shared intentionally: logging out affects every agent. Tab ownership prevents accidental interference between trusted agents; it is not a security sandbox. Custom headers also accompany cross-origin HTTP requests, so open trusted sites only. WebSocket and WebTransport traffic is outside the header isolation guarantee.
 
 ## Documentation
 
+- [Extension PoC, manual install and verified limitations](docs/extension-backend.md)
 - [Configuration, CLI commands, and MCP clients](docs/configuration.md)
 - [Linux, SSH, and login state migration](docs/deployment.md)
 - [Architecture and isolation model](docs/architecture.md)

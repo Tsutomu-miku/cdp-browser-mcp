@@ -1,5 +1,7 @@
 # Architecture
 
+Backend selection is now explicit (`backend: "cdp"` by default). Both implementations satisfy `src/backend.ts`; the broker and CLI/MCP use the same tool entry points. The CDP lifecycle below is unchanged. See the [two-backend architecture and extension protocol](extension-backend.md#两-backend-架构) for the extension PoC.
+
 Each MCP client owns a set of tabs in one persistent Chrome browser. Playwright connects over CDP to the browser's default context, so clients share cookies and same-origin storage.
 
 ```mermaid

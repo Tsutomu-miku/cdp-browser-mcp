@@ -37,3 +37,7 @@ npm run spike -- --block --headed
 ```
 
 Probe results are also written to `test-results/`. The shared/background worker fetches are intentionally outside per-tab attribution in the baseline. In blocking mode, their scripts and fetches must not reach the synthetic server.
+
+## Extension PoC
+
+Run `npm run test:extension` with `POC_CHROME_PATH` pointing to an already installed Chrome for Testing and optionally `POC_TEST_ROOT` for retained synthetic profiles. This is separate from the existing CDP suite and always headed. It creates its own profile and native manifest; no daily profile is accessed. Request-level evidence and platform status: [extension validation](validation/extension-poc/README.md).
