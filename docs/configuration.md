@@ -63,6 +63,13 @@ Unknown keys are rejected. Relative `stateDir` values are resolved against the c
 ```text
 cdp-browser-mcp mcp --agent <id>        Start MCP; start/reuse the shared browser
 cdp-browser-mcp open [url]              Open a tab (default agent: manual)
+cdp-browser-mcp navigate <url> --agent <id> --tab <id>
+cdp-browser-mcp snapshot --agent <id> --tab <id>
+cdp-browser-mcp click --ref <ref> --agent <id> --tab <id>
+cdp-browser-mcp type --ref <ref> --text <value> --agent <id> --tab <id>
+cdp-browser-mcp extract --agent <id> --tab <id> [--selector <css>]
+cdp-browser-mcp tabs --agent <id>        List only this agent's tabs
+cdp-browser-mcp downloads --agent <id>   List only this agent's downloads
 cdp-browser-mcp launch                  Start the browser in the background
 cdp-browser-mcp serve                   Run the browser service in the foreground
 cdp-browser-mcp status                  Display health, agents, tabs and downloads
@@ -74,6 +81,10 @@ cdp-browser-mcp stop                    Stop browser/service; retain user data
 ```
 
 Common options: `--config`, `--state-dir`, `--executable-path`, `--headed`, `--headless`, `--json`, `--version`, `--help`. `mcp` and `open` also accept `--lane` and `--headers`; `open` accepts `--agent` and `--url` as an alternative to the positional URL. Management commands print readable output by default; `--json` returns structured results for scripts. MCP stdout is reserved for protocol traffic.
+
+CLI browser actions require explicit `--agent` and `--tab`; they reuse the same ownership checks, request headers, leases, and browser actions as MCP. `click` and `type` accept exactly one `--ref` or `--selector`. `type` requires `--text` (an empty string clears the field), with optional `--submit` or `--slowly`. Refs come from the latest snapshot. `tabs` and `downloads` are scoped to the supplied agent; `status` is an administrative view of the whole shared service.
+
+For terminal-based skills, choose a unique execution ID, use `open --agent <id> --json` once, retain its returned `tabId` across command invocations, and finish with `reclaim --agent <id>`. The CLI process can exit between actions while the tab remains leased. There is no automatic CLI disconnect cleanup: explicit reclaim or lease expiry releases those tabs. Do not call `stop` or `reconnect` as task cleanup; those affect every client.
 
 Each successful browser action renews the tab lease. Manual login tabs expire too: use `renew` with the ID printed by `open`, or configure a longer `leaseMs`. Closing a tab, expiry, or a clean MCP disconnect releases ownership and cancels its unfinished downloads. A force-killed MCP client loses its idle tabs on expiry; if its agent ID remains registered, `reclaim` releases the registration.
 

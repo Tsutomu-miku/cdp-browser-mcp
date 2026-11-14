@@ -27,7 +27,8 @@
     "README.md",
     "CONTRIBUTING.md",
     "docs/*.md",
-    "examples"
+    "examples",
+    "skills"
   ],
   "scripts": {
     "build": "tsc",
@@ -36,7 +37,7 @@
     "spike": "node spike/probe.mjs",
     "test:headed": "STEWARD_HEADED=1 npm test",
     "pretest": "npm run build",
-    "format:check": "prettier --check src test spike examples README.md docs CONTRIBUTING.md package.json"
+    "format:check": "prettier --check src test spike examples skills README.md docs CONTRIBUTING.md package.json"
   },
   "author": {
     "name": "Tsutomu"

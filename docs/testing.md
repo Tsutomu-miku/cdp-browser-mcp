@@ -18,6 +18,7 @@ Generated request logs and results go to the ignored `test-results/` directory. 
 - SharedWorker/SW blocking, cross-agent denial, tab close, idle expiry, and download isolation.
 - Browser disconnection, cookie recovery, disk guard, and process/socket cleanup.
 - Concurrent first-run MCP startup, client header defaults, and reuse of one browser service.
+- Terminal skill execution through separate CLI invocations: two execution IDs, shared login, independent actions by snapshot ref, scoped tab/download lists, rejected cross-task access, and cleanup that preserves the other task. Request evidence is written to `test-results/skill-cli-{headed,headless}.json`.
 
 ## Validation records
 

@@ -21,6 +21,20 @@ The package is not published to the npm registry. `npx` builds and caches the Gi
 
 ## Connect your agent
 
+### Skill with terminal access
+
+Import [`skills/cdp-browser-mcp`](skills/cdp-browser-mcp/SKILL.md) into your agent's skill library. The skill uses the CLI directly, so an agent with terminal access does not need an MCP configuration or browser extension. Each execution uses a unique agent ID, shares the dedicated browser's login, and releases only its own tabs when finished.
+
+```sh
+npx --yes github:Tsutomu-miku/cdp-browser-mcp open --agent task-123 --json
+npx --yes github:Tsutomu-miku/cdp-browser-mcp navigate https://example.com --agent task-123 --tab <tab-id>
+npx --yes github:Tsutomu-miku/cdp-browser-mcp reclaim --agent task-123
+```
+
+Use the returned `tabId` from `open`. Browser actions print snapshots or visible text; `--json` returns structured results. Execution output stays in the agent's existing terminal/tool log. The skill does not add a UI panel or install software by itself.
+
+### MCP tools
+
 Add this to your client's MCP configuration:
 
 ```json

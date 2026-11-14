@@ -20,6 +20,11 @@ const { values, positionals } = parseArgs({
     tab: { type: "string" },
     url: { type: "string" },
     headers: { type: "string" },
+    ref: { type: "string" },
+    selector: { type: "string" },
+    text: { type: "string" },
+    submit: { type: "boolean" },
+    slowly: { type: "boolean" },
     headed: { type: "boolean" },
     headless: { type: "boolean" },
     "state-dir": { type: "string" },
@@ -30,6 +35,7 @@ const { values, positionals } = parseArgs({
   },
 });
 const command = positionals[0];
+const browserActions = ["navigate", "click", "type", "snapshot", "extract"];
 const commands = [
   "launch",
   "serve",
@@ -41,6 +47,9 @@ const commands = [
   "reconnect",
   "stop",
   "mcp",
+  "tabs",
+  "downloads",
+  ...browserActions,
 ];
 const help = `cdp-browser-mcp — shared browser sessions for multiple agents
 
@@ -48,7 +57,14 @@ Usage: cdp-browser-mcp <command> [options]
 
 Commands:
   mcp --agent <id>       Start an MCP stdio server; start/reuse the shared browser
-  open [url]            Open a tab for manual login (default agent: manual)
+  open [url]            Open an owned tab (default agent: manual)
+  navigate <url>        Navigate an owned tab; return snapshot and refs
+  click                 Click --ref <ref> or --selector <css>
+  type                  Fill --ref/--selector with --text <value>
+  snapshot              Read an owned tab's accessibility snapshot and refs
+  extract               Read visible text (optional --selector <css>)
+  tabs --agent <id>     List only this agent's tabs
+  downloads --agent <id>  List only this agent's completed downloads
   launch                Start the shared browser in the background
   status                Show browser health, tabs, agents and downloads
   stop                  Stop the shared browser; keep login state and downloads
@@ -60,18 +76,23 @@ Commands:
 
 Options:
   --headers <json>      Per-tab request headers, e.g. '{"x-lane":"blue"}'
+  --agent <id>          Unique execution/session ID (not a shared agent name)
+  --tab <id>            Explicit owned tab ID for browser actions
+  --ref / --selector    Element ref from snapshot, or a CSS selector
+  --text <value>        Text to fill; --submit presses Enter; --slowly types keys
   --lane <name>         Header template from config (default: default)
   --config <file>       Optional JSON configuration
   --state-dir <path>    Dedicated browser data directory
   --executable-path <path>  Chrome executable (otherwise auto-detected)
   --headed / --headless Choose the display mode when starting a new browser
-  --json                Print management command results as JSON
+  --json                Print command results as JSON
   -V, --version         Print version
   -h, --help            Show this help
 
 Examples:
   cdp-browser-mcp mcp --agent codex
   cdp-browser-mcp open https://example.com
+  cdp-browser-mcp snapshot --agent task-123 --tab <tab-id>
   cdp-browser-mcp status
   cdp-browser-mcp stop`;
 
@@ -95,7 +116,7 @@ async function main() {
   }
   if (!commands.includes(command))
     throw Error(`Unknown command: ${command}. Run cdp-browser-mcp --help.`);
-  if (positionals.length > (command === "open" ? 2 : 1))
+  if (positionals.length > (["open", "navigate"].includes(command) ? 2 : 1))
     throw Error("Unexpected positional arguments");
   const config =
     command === "serve" && process.connected
@@ -147,6 +168,36 @@ async function main() {
     command === "open"
       ? idSchema.parse(values.agent || "manual")
       : values.agent;
+  const browserAction = browserActions.includes(command);
+  if (browserAction || ["tabs", "downloads"].includes(command)) {
+    if (!agentId) throw Error(`--agent is required for ${command}`);
+    idSchema.parse(agentId);
+  }
+  const actionArgs: Record<string, unknown> = {};
+  if (browserAction) {
+    if (!values.tab) throw Error(`--tab is required for ${command}`);
+    if (command === "navigate") {
+      const url = positionals[1] || values.url;
+      if (!url) throw Error("navigate requires a URL");
+      actionArgs.url = url;
+    }
+    if (command === "click" || command === "type") {
+      if (!!values.ref === !!values.selector)
+        throw Error("Choose exactly one of --ref or --selector");
+      if (values.ref) actionArgs.ref = values.ref;
+      if (values.selector) actionArgs.selector = values.selector;
+    }
+    if (command === "type") {
+      if (values.text === undefined) throw Error("type requires --text");
+      Object.assign(actionArgs, {
+        text: values.text,
+        submit: values.submit,
+        slowly: values.slowly,
+      });
+    }
+    if (command === "extract" && values.selector)
+      actionArgs.selector = values.selector;
+  }
   if (command === "mcp") {
     if (!agentId)
       throw Error(
@@ -177,7 +228,43 @@ async function main() {
     throw Error("Browser is not running. Run cdp-browser-mcp launch first.");
   }
   const { admin } = running;
+  if (browserAction) {
+    const result = await rpc(admin, "action", {
+      agentId,
+      tabId: values.tab,
+      action: command,
+      args: actionArgs,
+    });
+    output(result, command === "extract" ? result.text : result.snapshot);
+    return;
+  }
   switch (command) {
+    case "tabs": {
+      const tabs = await rpc<{ tabId: string; lane: string; url: string }[]>(
+        admin,
+        "list",
+        { agentId },
+      );
+      output(
+        tabs,
+        tabs.length
+          ? tabs.map((t) => `${t.tabId}  ${t.lane}  ${t.url}`).join("\n")
+          : "No active tabs for this agent.",
+      );
+      break;
+    }
+    case "downloads": {
+      const downloads = await rpc<{ path: string }[]>(admin, "downloads", {
+        agentId,
+      });
+      output(
+        downloads,
+        downloads.length
+          ? downloads.map((d) => d.path).join("\n")
+          : "No completed downloads for this agent.",
+      );
+      break;
+    }
     case "status": {
       const status = await rpc(admin, "status");
       const tabs = status.tabs as {

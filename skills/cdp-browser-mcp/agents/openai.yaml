@@ -1,0 +1,4 @@
+interface:
+  display_name: "CDP Browser MCP"
+  short_description: "Verify browser tasks with shared login and isolated tabs"
+  default_prompt: "Use $cdp-browser-mcp to verify this browser flow in an execution-owned tab and report the observed result."
