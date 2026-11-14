@@ -154,7 +154,7 @@ Agent 调用 `browser_tabs({action:"available"})` 得到 Chrome tabId，再用 `
 - native host 校验 Chrome 传入的精确调用扩展 origin；socket 握手还校验协议版本、扩展 ID 和独立随机 token。帧大小、命令名、tab ID、头名/值有边界校验。
 - broker 每 2 秒探测；扩展 native 心跳每 5 秒，15 秒无消息判失联；断线指数退避 250ms–10s，alarms 补充唤醒。清除断连规则后，新 host 恢复有效 tab 租约的头规则，再标记 ready。
 - 超时打断失效通道；后续请求可重新连接。**不自动重放导航/点击/输入**，超时/断连时操作结果可能未知，调用方应先读取页面确认。旧请求晚到响应不会当作新请求。
-- **已实测**：SIGKILL native host 后进程 PID 和连接 generation 改变，原 tab 无需重开即可继续，后续请求头恢复；故意让导航不结束触发 action/health 超时后，后续请求也恢复，导航只发出一次。
+- **已实测**：SIGKILL native host 后进程 PID 和连接 generation 改变，原 tab 无需重开即可继续，后续请求头恢复；故意让导航不结束触发 action/health 超时后，后续请求也恢复，导航只发出一次。另强制关闭扩展 worker target 后，持久 alarm 唤醒新 worker，并从 broker 恢复 tab 规则；后续请求头仍正确。
 - **文档说明**：恢复期间页面和既有 worker 仍可自主发请求；清规则到重建之间可能无泳道头。此后端不是网络防火墙，也不保证断连期间拦截流量。broker 崩溃后内存租约丢失，新 broker 清理旧 session rules，不接管未知旧 tab；之前由工具新建的 tab 可能留下供用户关闭。
 
 ## 验证与跨平台状态
@@ -178,3 +178,11 @@ npm run test:extension
 | 其他浏览器、其他架构                      | 未验证。                                                                                    |
 
 交付证据见 [扩展请求级验证记录](validation/extension-poc/README.md)。标准 native manifest 位置与 framing 依据 [Chrome native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)；截图授权依据 [Chrome tabs.captureVisibleTab](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-captureVisibleTab)。
+
+## 公开技能参考复核
+
+本轮参考 [chrome-extensions 的 MV3 指导](https://github.com/GoogleChrome/modern-web-guidance/blob/main/skills/chrome-extensions/SKILL.md)，重点核对同步顶层事件注册、隔离世界、CSP、明确 host 权限、用户手势和 [worker 生命周期](https://github.com/GoogleChrome/modern-web-guidance/blob/main/skills/chrome-extensions/references/extensions/service-worker.md)。只阅读指导，不复用其实现代码或增加运行时依赖。
+
+租约与头配置的权威在本机 broker 和浏览器 DNR session rules；扩展的 port、串行队列和短时重试句柄均可丢弃重建。native port 活着时，短时 timer 负责通道心跳；持久 alarm 负责 worker 回收后的唤醒，不依赖 timer 跨 worker 存活。已增加强制终止 worker 的真实 E2E 验证，没有为可重建的 transport 对象新增 storage 权限。
+
+`modern-web-guidance` CLI 使用 `DISABLE_TELEMETRY=1`，检索了 extension service worker lifecycle 与 service worker alarms；结果没有适用的 worker/alarms 专题，因此未套用无关 Web UI 指南，也没有引入该 CLI 为项目依赖。

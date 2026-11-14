@@ -371,10 +371,36 @@ test(
         site.records.find((r) => r.tag === "after-timeout")!.lane,
         "blue",
       );
+      // MV3 globals/timers can disappear. The durable alarm must wake a fresh
+      // extension worker and restore broker-owned leases without storage duplication.
+      const beforeWorkerRestart = backend.health();
+      const targets = await cdp.send("Target.getTargets");
+      const extensionTarget = targets.targetInfos.find(
+        (t) => t.type === "service_worker" && t.url === extensionWorker.url(),
+      )!;
+      assert.ok(extensionTarget, "Extension worker target is present");
+      await cdp.send("Target.closeTarget", {
+        targetId: extensionTarget.targetId,
+      });
+      const afterWorkerRestart = await until(
+        async () => backend.health(),
+        (v) =>
+          v.ready === true &&
+          Number(v.generation) > Number(beforeWorkerRestart.generation),
+        "alarm recovery after forced MV3 worker termination",
+        45000,
+      );
+      await call("browser_navigate", {
+        url: site.base + "/echo?tag=after-worker-restart",
+      });
+      assert.equal(
+        site.records.find((r) => r.tag === "after-worker-restart")!.lane,
+        "blue",
+      );
       const rulesBefore = await backend.bridge.call("health");
       const liveA = context
         .pages()
-        .find((p) => p.url().includes("tag=after-timeout"))!;
+        .find((p) => p.url().includes("tag=after-worker-restart"))!;
       await liveA.close();
       await until(
         async () => backend.bridge.call("health"),
@@ -427,6 +453,9 @@ test(
         timeoutBefore: beforeTimeout,
         timeoutAfter: afterTimeout,
         timeoutRecovered: true,
+        workerRestartBefore: beforeWorkerRestart,
+        workerRestartAfter: afterWorkerRestart,
+        workerRestartRecovered: true,
         timedOutNavigationRequests: 1,
         initialHealth: ready,
         rulesBeforeClose: rulesBefore,

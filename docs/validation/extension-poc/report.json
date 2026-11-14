@@ -1,5 +1,5 @@
 {
-  "testedAt": "2026-11-14T17:57:18.036Z",
+  "testedAt": "2026-11-14T18:03:20.322Z",
   "platform": "darwin",
   "arch": "arm64",
   "browserVersion": "148.0.7778.96",
@@ -23,7 +23,7 @@
     "connected": true,
     "mode": "existing-profile",
     "tabs": 3,
-    "hostPid": 79019,
+    "hostPid": 85570,
     "generation": 1,
     "workerPolicy": "tab-scoped-only-background-unmodified",
     "isolation": "single-lane-use-cdp-for-parallel-lanes"
@@ -34,7 +34,7 @@
     "connected": true,
     "mode": "existing-profile",
     "tabs": 3,
-    "hostPid": 79046,
+    "hostPid": 85585,
     "generation": 2,
     "workerPolicy": "tab-scoped-only-background-unmodified",
     "isolation": "single-lane-use-cdp-for-parallel-lanes"
@@ -45,7 +45,7 @@
     "connected": true,
     "mode": "existing-profile",
     "tabs": 3,
-    "hostPid": 79046,
+    "hostPid": 85585,
     "generation": 2,
     "workerPolicy": "tab-scoped-only-background-unmodified",
     "isolation": "single-lane-use-cdp-for-parallel-lanes"
@@ -56,12 +56,35 @@
     "connected": true,
     "mode": "existing-profile",
     "tabs": 3,
-    "hostPid": 79083,
+    "hostPid": 85786,
     "generation": 3,
     "workerPolicy": "tab-scoped-only-background-unmodified",
     "isolation": "single-lane-use-cdp-for-parallel-lanes"
   },
   "timeoutRecovered": true,
+  "workerRestartBefore": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 3,
+    "hostPid": 85786,
+    "generation": 3,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "workerRestartAfter": {
+    "backend": "extension",
+    "ready": true,
+    "connected": true,
+    "mode": "existing-profile",
+    "tabs": 3,
+    "hostPid": 85839,
+    "generation": 4,
+    "workerPolicy": "tab-scoped-only-background-unmodified",
+    "isolation": "single-lane-use-cdp-for-parallel-lanes"
+  },
+  "workerRestartRecovered": true,
   "timedOutNavigationRequests": 1,
   "initialHealth": {
     "backend": "extension",
@@ -69,33 +92,33 @@
     "connected": true,
     "mode": "existing-profile",
     "tabs": 0,
-    "hostPid": 79019,
+    "hostPid": 85570,
     "generation": 1,
     "workerPolicy": "tab-scoped-only-background-unmodified",
     "isolation": "single-lane-use-cdp-for-parallel-lanes"
   },
   "rulesBeforeClose": {
     "version": 1,
-    "extensionId": "hgdggebdmneleibcjjdkplikbplejhif",
+    "extensionId": "pppljjmklplmjadkaldaoolamjelpgha",
     "rules": [
       {
-        "id": 1941236949,
-        "tabIds": [1941236948]
+        "id": 604063775,
+        "tabIds": [604063774]
       },
       {
-        "id": 1941236950,
-        "tabIds": [1941236949]
+        "id": 604063776,
+        "tabIds": [604063775]
       }
     ],
     "backgroundHeaders": "unmodified"
   },
   "rulesAfterClose": {
     "version": 1,
-    "extensionId": "hgdggebdmneleibcjjdkplikbplejhif",
+    "extensionId": "pppljjmklplmjadkaldaoolamjelpgha",
     "rules": [
       {
-        "id": 1941236950,
-        "tabIds": [1941236949]
+        "id": 604063776,
+        "tabIds": [604063775]
       }
     ],
     "backgroundHeaders": "unmodified"
@@ -215,16 +238,6 @@
     },
     {
       "seq": 12,
-      "path": "/frame",
-      "tag": "A",
-      "kind": null,
-      "lane": "blue",
-      "custom": "alpha",
-      "loggedIn": true,
-      "destination": "iframe"
-    },
-    {
-      "seq": 13,
       "path": "/echo",
       "tag": "A",
       "kind": "xhr",
@@ -234,7 +247,7 @@
       "destination": "empty"
     },
     {
-      "seq": 14,
+      "seq": 13,
       "path": "/echo",
       "tag": "A",
       "kind": "beacon",
@@ -242,6 +255,16 @@
       "custom": "alpha",
       "loggedIn": true,
       "destination": "empty"
+    },
+    {
+      "seq": 14,
+      "path": "/frame",
+      "tag": "A",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "iframe"
     },
     {
       "seq": 15,
@@ -632,258 +655,288 @@
       "custom": "alpha",
       "loggedIn": true,
       "destination": "image"
+    },
+    {
+      "seq": 54,
+      "path": "/sw.js",
+      "tag": null,
+      "kind": null,
+      "lane": null,
+      "custom": null,
+      "loggedIn": true,
+      "destination": "serviceworker"
+    },
+    {
+      "seq": 55,
+      "path": "/echo",
+      "tag": "after-worker-restart",
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "document"
+    },
+    {
+      "seq": 56,
+      "path": "/favicon.ico",
+      "tag": null,
+      "kind": null,
+      "lane": "blue",
+      "custom": "alpha",
+      "loggedIn": true,
+      "destination": "image"
     }
   ],
   "attribution": [
     {
       "path": "/login",
       "search": "",
-      "tabId": 1941236947,
+      "tabId": 604063773,
       "type": "main_frame",
       "requestId": "1"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236947,
+      "tabId": 604063773,
       "type": "image",
       "requestId": "2"
     },
     {
       "path": "/session",
       "search": "",
-      "tabId": 1941236947,
+      "tabId": 604063773,
       "type": "main_frame",
       "requestId": "3"
     },
     {
       "path": "/private",
       "search": "",
-      "tabId": 1941236947,
+      "tabId": 604063773,
       "type": "main_frame",
       "requestId": "3"
     },
     {
       "path": "/style.css",
       "search": "",
-      "tabId": 1941236947,
+      "tabId": 604063773,
       "type": "stylesheet",
       "requestId": "4"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236947,
+      "tabId": 604063773,
       "type": "image",
       "requestId": "5"
     },
     {
       "path": "/probe",
       "search": "?tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "main_frame",
       "requestId": "6"
     },
     {
       "path": "/style.css",
       "search": "?tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "stylesheet",
       "requestId": "7"
     },
     {
       "path": "/pixel.svg",
       "search": "?tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "image",
       "requestId": "8"
     },
     {
       "path": "/script.js",
       "search": "?tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "script",
       "requestId": "9"
     },
     {
       "path": "/echo",
       "search": "?kind=fetch&tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "xmlhttprequest",
       "requestId": "10"
     },
     {
       "path": "/echo",
       "search": "?kind=xhr&tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "xmlhttprequest",
       "requestId": "11"
     },
     {
       "path": "/echo",
       "search": "?kind=beacon&tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "ping",
       "requestId": "12"
     },
     {
-      "path": "/frame",
+      "path": "/dedicated.js",
       "search": "?tag=A",
-      "tabId": 1941236948,
-      "type": "sub_frame",
+      "tabId": 604063774,
+      "type": "script",
       "requestId": "13"
     },
     {
-      "path": "/dedicated.js",
+      "path": "/frame",
       "search": "?tag=A",
-      "tabId": 1941236948,
-      "type": "script",
+      "tabId": 604063774,
+      "type": "sub_frame",
       "requestId": "14"
     },
     {
       "path": "/echo",
       "search": "?kind=frame-fetch&tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "xmlhttprequest",
       "requestId": "15"
     },
     {
       "path": "/echo",
       "search": "?kind=dedicated-fetch&tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "xmlhttprequest",
       "requestId": "16"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "image",
       "requestId": "17"
     },
     {
       "path": "/probe",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "main_frame",
       "requestId": "18"
     },
     {
       "path": "/style.css",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "stylesheet",
       "requestId": "19"
     },
     {
       "path": "/pixel.svg",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "image",
       "requestId": "20"
     },
     {
       "path": "/script.js",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "script",
       "requestId": "21"
     },
     {
       "path": "/echo",
       "search": "?kind=fetch&tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "xmlhttprequest",
       "requestId": "22"
     },
     {
       "path": "/echo",
       "search": "?kind=xhr&tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "xmlhttprequest",
       "requestId": "23"
     },
     {
       "path": "/echo",
       "search": "?kind=beacon&tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "ping",
       "requestId": "24"
     },
     {
       "path": "/dedicated.js",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "script",
       "requestId": "25"
     },
     {
       "path": "/frame",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "sub_frame",
       "requestId": "26"
     },
     {
       "path": "/echo",
       "search": "?kind=frame-fetch&tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "xmlhttprequest",
       "requestId": "27"
     },
     {
       "path": "/echo",
       "search": "?kind=dedicated-fetch&tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "xmlhttprequest",
       "requestId": "28"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "image",
       "requestId": "29"
     },
     {
       "path": "/echo",
       "search": "?tag=changed",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "main_frame",
       "requestId": "30"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "image",
       "requestId": "31"
     },
     {
       "path": "/echo",
       "search": "?tag=removed",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "main_frame",
       "requestId": "32"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "image",
       "requestId": "33"
     },
     {
       "path": "/workers",
       "search": "?tag=B",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "main_frame",
       "requestId": "34"
     },
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "image",
       "requestId": "35"
     },
@@ -911,7 +964,7 @@
     {
       "path": "/shared.js",
       "search": "",
-      "tabId": 1941236949,
+      "tabId": 604063775,
       "type": "script",
       "requestId": "39"
     },
@@ -925,7 +978,7 @@
     {
       "path": "/workers",
       "search": "?tag=A",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "main_frame",
       "requestId": "41"
     },
@@ -946,7 +999,7 @@
     {
       "path": "/favicon.ico",
       "search": "",
-      "tabId": 1941236948,
+      "tabId": 604063774,
       "type": "image",
       "requestId": "44"
     },
