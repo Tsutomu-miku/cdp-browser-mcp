@@ -34,8 +34,8 @@ flowchart LR
 需要已有 Node.js 22+、npm、Chrome；不会自动安装浏览器、Xvfb、字体或其他系统依赖。仓库公开，可直接克隆。
 
 ```zsh
-git clone https://github.com/Tsutomu-miku/cdp-browser-steward-tsutomu.git
-cd cdp-browser-steward-tsutomu
+git clone https://github.com/Tsutomu-miku/cdp-browser-mcp.git
+cd cdp-browser-mcp
 npm ci
 npm run build
 cp examples/config.json /tmp/steward-config.json
@@ -49,7 +49,7 @@ node dist/cli.js status --config /tmp/steward-config.json
 也可从 git 安装或本地用 npm bin：
 
 ```zsh
-npm install --global git+https://github.com/Tsutomu-miku/cdp-browser-steward-tsutomu.git
+npm install --global git+https://github.com/Tsutomu-miku/cdp-browser-mcp.git
 cdp-browser-steward --help
 # 在源码目录：
 npm exec -- cdp-browser-steward status --config /tmp/steward-config.json
@@ -115,7 +115,7 @@ Codex `config.toml`（替换绝对路径，格式已核对 [OpenAI 官方 MCP �
 ```toml
 [mcp_servers.browser]
 command = "node"
-args = ["/absolute/cdp-browser-steward-tsutomu/dist/cli.js", "mcp", "--config", "/absolute/steward-config.json", "--agent", "codex", "--lane", "blue"]
+args = ["/absolute/cdp-browser-mcp/dist/cli.js", "mcp", "--config", "/absolute/steward-config.json", "--agent", "codex", "--lane", "blue"]
 ```
 
 通用 MCP JSON：
@@ -125,7 +125,7 @@ args = ["/absolute/cdp-browser-steward-tsutomu/dist/cli.js", "mcp", "--config", 
   "mcpServers": {
     "browser": {
       "command": "node",
-      "args": ["/absolute/cdp-browser-steward-tsutomu/dist/cli.js", "mcp", "--config", "/absolute/steward-config.json", "--agent", "agent-b", "--lane", "green"]
+      "args": ["/absolute/cdp-browser-mcp/dist/cli.js", "mcp", "--config", "/absolute/steward-config.json", "--agent", "agent-b", "--lane", "green"]
     }
   }
 }

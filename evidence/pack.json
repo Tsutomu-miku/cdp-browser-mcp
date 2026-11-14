@@ -2,15 +2,15 @@
   "id": "cdp-browser-steward@0.1.0",
   "name": "cdp-browser-steward",
   "version": "0.1.0",
-  "size": 24361,
-  "unpackedSize": 81399,
-  "shasum": "e0f57372f64f8e409313c59391bf7eb45bcb8873",
-  "integrity": "sha512-Ei2om8IzRXAilsGE5btKYKdwRvB7ZQd58jwSGlfOmMrmi0harf+s2QBWaWIRJuxcyqefDG++BAqLZJ+Q6RsL7w==",
+  "size": 24359,
+  "unpackedSize": 81327,
+  "shasum": "68908e57fe43504f8e445a235c5ae73c41117ffe",
+  "integrity": "sha512-j2n0KSo+k8WsFjjQsZVqBbpIezO28+HJ5ByLtOFznqC7mhlw5T6GbvUfd8p9UD+mTBIYMiD01FR9GPI8Y05Esw==",
   "filename": "cdp-browser-steward-0.1.0.tgz",
   "files": [
     {
       "path": "README.md",
-      "size": 17080,
+      "size": 17020,
       "mode": 420
     },
     {
@@ -90,7 +90,7 @@
     },
     {
       "path": "package.json",
-      "size": 1081,
+      "size": 1069,
       "mode": 420
     }
   ],
