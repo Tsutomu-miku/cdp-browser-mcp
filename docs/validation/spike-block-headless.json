@@ -1,5 +1,5 @@
 {
-  "mode": "headed",
+  "mode": "headless=new",
   "blocked": true,
   "version": "157.0.8103.51",
   "cookieShared": true,
@@ -85,7 +85,7 @@
       }
     },
     {
-      "path": "/fetch",
+      "path": "/beacon",
       "agent": "A",
       "headers": {
         "lane": "A",
@@ -94,7 +94,16 @@
       }
     },
     {
-      "path": "/beacon",
+      "path": "/iframe",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "iframe"
+      }
+    },
+    {
+      "path": "/fetch",
       "agent": "A",
       "headers": {
         "lane": "A",
@@ -121,30 +130,21 @@
       }
     },
     {
-      "path": "/iframe",
-      "agent": "A",
-      "headers": {
-        "lane": "A",
-        "cookie": "identity=synthetic",
-        "dest": "iframe"
-      }
-    },
-    {
-      "path": "/iframe",
-      "agent": "B",
-      "headers": {
-        "lane": "B",
-        "cookie": "identity=synthetic",
-        "dest": "iframe"
-      }
-    },
-    {
       "path": "/fetch",
       "agent": "B",
       "headers": {
         "lane": "B",
         "cookie": "identity=synthetic",
         "dest": "empty"
+      }
+    },
+    {
+      "path": "/iframe",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "iframe"
       }
     },
     {
@@ -175,24 +175,6 @@
       }
     },
     {
-      "path": "/nested.js",
-      "agent": "A",
-      "headers": {
-        "lane": "A",
-        "cookie": "identity=synthetic",
-        "dest": "worker"
-      }
-    },
-    {
-      "path": "/iframe-fetch",
-      "agent": "A",
-      "headers": {
-        "lane": "A",
-        "cookie": "identity=synthetic",
-        "dest": "empty"
-      }
-    },
-    {
       "path": "/iframe-fetch",
       "agent": "B",
       "headers": {
@@ -211,7 +193,16 @@
       }
     },
     {
-      "path": "/worker-fetch",
+      "path": "/nested.js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/iframe-fetch",
       "agent": "A",
       "headers": {
         "lane": "A",
@@ -229,7 +220,7 @@
       }
     },
     {
-      "path": "/nested-fetch",
+      "path": "/worker-fetch",
       "agent": "A",
       "headers": {
         "lane": "A",
@@ -242,6 +233,15 @@
       "agent": "B",
       "headers": {
         "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/nested-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
         "cookie": "identity=synthetic",
         "dest": "empty"
       }
@@ -249,143 +249,143 @@
   ],
   "intercepted": [
     {
-      "url": "http://127.0.0.1:57242/login",
+      "url": "http://127.0.0.1:57094/login",
       "type": "document",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/page?a=A",
+      "url": "http://127.0.0.1:57094/page?a=A",
       "type": "document",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/page?a=B",
+      "url": "http://127.0.0.1:57094/page?a=B",
       "type": "document",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/css?a=A",
+      "url": "http://127.0.0.1:57094/css?a=A",
       "type": "stylesheet",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/css?a=B",
+      "url": "http://127.0.0.1:57094/css?a=B",
       "type": "stylesheet",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/js?a=A",
+      "url": "http://127.0.0.1:57094/js?a=A",
       "type": "script",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/img?a=A",
+      "url": "http://127.0.0.1:57094/img?a=A",
       "type": "image",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/js?a=B",
+      "url": "http://127.0.0.1:57094/js?a=B",
       "type": "script",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/img?a=B",
+      "url": "http://127.0.0.1:57094/img?a=B",
       "type": "image",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/fetch?a=A",
+      "url": "http://127.0.0.1:57094/fetch?a=A",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/iframe?a=A",
+      "url": "http://127.0.0.1:57094/iframe?a=A",
       "type": "document",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/xhr?a=A",
+      "url": "http://127.0.0.1:57094/xhr?a=A",
       "type": "xhr",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/worker.js?a=A",
-      "type": "script",
-      "serviceWorker": false
-    },
-    {
-      "url": "http://127.0.0.1:57242/beacon?a=A",
+      "url": "http://127.0.0.1:57094/beacon?a=A",
       "type": "ping",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/fetch?a=B",
+      "url": "http://127.0.0.1:57094/worker.js?a=A",
+      "type": "script",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57094/fetch?a=B",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/iframe?a=B",
+      "url": "http://127.0.0.1:57094/iframe?a=B",
       "type": "document",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/xhr?a=B",
+      "url": "http://127.0.0.1:57094/xhr?a=B",
       "type": "xhr",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/beacon?a=B",
+      "url": "http://127.0.0.1:57094/beacon?a=B",
       "type": "ping",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/worker.js?a=B",
+      "url": "http://127.0.0.1:57094/worker.js?a=B",
       "type": "script",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/iframe-fetch?a=A",
+      "url": "http://127.0.0.1:57094/iframe-fetch?a=B",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/iframe-fetch?a=B",
+      "url": "http://127.0.0.1:57094/iframe-fetch?a=A",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/worker-fetch?a=A",
-      "type": "fetch",
-      "serviceWorker": false
-    },
-    {
-      "url": "http://127.0.0.1:57242/sw.js?a=A",
+      "url": "http://127.0.0.1:57094/sw.js?a=A",
       "type": "script",
       "sw": "script",
       "serviceWorker": true
     },
     {
-      "url": "http://127.0.0.1:57242/worker-fetch?a=B",
+      "url": "http://127.0.0.1:57094/worker-fetch?a=B",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/nested-fetch?a=A",
+      "url": "http://127.0.0.1:57094/worker-fetch?a=A",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/nested-fetch?a=B",
+      "url": "http://127.0.0.1:57094/nested-fetch?a=B",
       "type": "fetch",
       "serviceWorker": false
     },
     {
-      "url": "http://127.0.0.1:57242/sw.js?a=B",
+      "url": "http://127.0.0.1:57094/sw.js?a=B",
       "type": "script",
       "sw": "script",
       "serviceWorker": true
+    },
+    {
+      "url": "http://127.0.0.1:57094/nested-fetch?a=A",
+      "type": "fetch",
+      "serviceWorker": false
     }
   ],
-  "sw": "Failed to register a ServiceWorker for scope ('http://127.0.0.1:57242/') with script ('http://127.0.0.1:57242/sw.js?a=A'): An unknown error occurred when fetching the script.",
+  "sw": "Failed to register a ServiceWorker for scope ('http://127.0.0.1:57094/') with script ('http://127.0.0.1:57094/sw.js?a=A'): An unknown error occurred when fetching the script.",
   "sharedError": "SharedWorker is not defined"
 }

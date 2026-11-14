@@ -5,7 +5,14 @@ import {
   type IncomingMessage,
 } from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { chmod, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  readFile,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { Steward } from "./steward.js";
@@ -15,6 +22,13 @@ export interface Admin {
   pid: number;
   token: string;
   socket: string;
+}
+export class SupervisorBusyError extends Error {
+  constructor() {
+    super(
+      "A browser service is already running or starting for this state directory",
+    );
+  }
 }
 const envelope = z
   .object({
@@ -112,7 +126,9 @@ export class Broker {
       let old: Admin;
       try {
         old = await readAdmin(this.config.stateDir);
-      } catch {
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === "ENOENT")
+          throw new SupervisorBusyError();
         throw Error(
           "Steward lock exists without valid admin.json; inspect this stateDir before removing the lock",
         );
@@ -124,16 +140,24 @@ export class Broker {
         if ((e as NodeJS.ErrnoException).code === "ESRCH") live = false;
         else throw e;
       }
-      if (live) throw Error("A steward is already running for this stateDir");
+      if (live) throw new SupervisorBusyError();
       await rm(lock, { recursive: true });
       await mkdir(lock);
     }
     this.locked = true;
     try {
       await rm(this.admin.socket, { force: true });
+      // Concurrent starters must see a complete identity or no identity.
+      const identity = join(this.config.stateDir, `admin-${process.pid}.tmp`);
+      try {
+        await writeFile(identity, JSON.stringify(this.admin), { mode: 0o600 });
+        await rename(identity, join(this.config.stateDir, "admin.json"));
+      } finally {
+        await rm(identity, { force: true });
+      }
       await writeFile(
-        join(this.config.stateDir, "admin.json"),
-        JSON.stringify(this.admin),
+        join(this.config.stateDir, "launch-config.json"),
+        JSON.stringify(this.config, null, 2),
         { mode: 0o600 },
       );
       await this.steward.start();

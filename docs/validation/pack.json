@@ -1,26 +1,31 @@
 {
-  "id": "cdp-browser-steward@0.1.0",
-  "name": "cdp-browser-steward",
+  "id": "cdp-browser-mcp@0.1.0",
+  "name": "cdp-browser-mcp",
   "version": "0.1.0",
-  "size": 24359,
-  "unpackedSize": 81327,
-  "shasum": "68908e57fe43504f8e445a235c5ae73c41117ffe",
-  "integrity": "sha512-j2n0KSo+k8WsFjjQsZVqBbpIezO28+HJ5ByLtOFznqC7mhlw5T6GbvUfd8p9UD+mTBIYMiD01FR9GPI8Y05Esw==",
-  "filename": "cdp-browser-steward-0.1.0.tgz",
+  "size": 26190,
+  "unpackedSize": 95571,
+  "shasum": "c0fce0e950cc0df2d4f2313a351fdecb6d8037ef",
+  "integrity": "sha512-51hs5uTggEoNq1dPf/+V75Qbh0XeTcALrEmLhhjt6h9zkXqPnaZ5Mc2N+1GOJQKok6Agz9bFF8PB2nwFg3YoTA==",
+  "filename": "cdp-browser-mcp-0.1.0.tgz",
   "files": [
     {
+      "path": "CONTRIBUTING.md",
+      "size": 1112,
+      "mode": 420
+    },
+    {
       "path": "README.md",
-      "size": 17020,
+      "size": 4559,
       "mode": 420
     },
     {
       "path": "dist/broker.d.ts",
-      "size": 725,
+      "size": 803,
       "mode": 420
     },
     {
       "path": "dist/broker.js",
-      "size": 10077,
+      "size": 10797,
       "mode": 420
     },
     {
@@ -30,7 +35,7 @@
     },
     {
       "path": "dist/cli.js",
-      "size": 6352,
+      "size": 9163,
       "mode": 420
     },
     {
@@ -40,7 +45,7 @@
     },
     {
       "path": "dist/config.js",
-      "size": 3160,
+      "size": 2347,
       "mode": 420
     },
     {
@@ -55,22 +60,22 @@
     },
     {
       "path": "dist/mcp.d.ts",
-      "size": 98,
+      "size": 132,
       "mode": 420
     },
     {
       "path": "dist/mcp.js",
-      "size": 5240,
+      "size": 5498,
       "mode": 420
     },
     {
       "path": "dist/runtime.d.ts",
-      "size": 668,
+      "size": 692,
       "mode": 420
     },
     {
       "path": "dist/runtime.js",
-      "size": 10056,
+      "size": 10920,
       "mode": 420
     },
     {
@@ -84,18 +89,48 @@
       "mode": 420
     },
     {
+      "path": "dist/supervisor.d.ts",
+      "size": 466,
+      "mode": 420
+    },
+    {
+      "path": "dist/supervisor.js",
+      "size": 3093,
+      "mode": 420
+    },
+    {
+      "path": "docs/architecture.md",
+      "size": 5516,
+      "mode": 420
+    },
+    {
+      "path": "docs/configuration.md",
+      "size": 6433,
+      "mode": 420
+    },
+    {
+      "path": "docs/deployment.md",
+      "size": 3917,
+      "mode": 420
+    },
+    {
+      "path": "docs/testing.md",
+      "size": 2015,
+      "mode": 420
+    },
+    {
       "path": "examples/config.json",
-      "size": 372,
+      "size": 192,
       "mode": 420
     },
     {
       "path": "package.json",
-      "size": 1069,
+      "size": 1426,
       "mode": 420
     }
   ],
-  "entryCount": 17,
+  "entryCount": 24,
   "bundled": [],
-  "binSmokeTest": "installed tarball: cdp-browser-steward --help",
+  "binSmokeTest": "installed tarball: cdp-browser-mcp --help and --version",
   "npmPublish": false
 }

@@ -33,9 +33,7 @@ test(
     const site = await syntheticSite();
     const config = configSchema.parse({
       stateDir: root,
-      executablePath:
-        process.env.CHROME_PATH ||
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      executablePath: process.env.CHROME_PATH,
       cdpPort: 0,
       headless: !process.env.STEWARD_HEADED,
       leaseMs: 10000,
@@ -354,9 +352,9 @@ test(
           .every((e) => e.headerHit),
       );
       const mode = config.headless ? "headless" : "headed";
-      await mkdir("evidence", { recursive: true });
+      await mkdir("test-results", { recursive: true });
       await writeFile(
-        `evidence/concurrent-${mode}.json`,
+        `test-results/concurrent-${mode}.json`,
         JSON.stringify(
           {
             testedAt: new Date().toISOString(),

@@ -1,5 +1,5 @@
 {
-  "name": "cdp-browser-steward",
+  "name": "cdp-browser-mcp",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -20,21 +20,23 @@
   "description": "Shared-identity CDP browser with per-agent tab leases and MCP tools",
   "license": "UNLICENSED",
   "bin": {
-    "cdp-browser-steward": "dist/cli.js"
+    "cdp-browser-mcp": "dist/cli.js"
   },
-  "exports": "./dist/steward.js",
   "files": [
     "dist",
     "README.md",
+    "CONTRIBUTING.md",
+    "docs/*.md",
     "examples"
   ],
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "prepack": "npm run build",
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts",
     "spike": "node spike/probe.mjs",
-    "test:headed": "STEWARD_HEADED=1 npm test"
+    "test:headed": "STEWARD_HEADED=1 npm test",
+    "pretest": "npm run build",
+    "format:check": "prettier --check src test spike examples README.md docs CONTRIBUTING.md package.json"
   },
   "author": {
     "name": "Tsutomu"
@@ -42,5 +44,16 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Tsutomu-miku/cdp-browser-mcp.git"
-  }
+  },
+  "keywords": [
+    "mcp",
+    "cdp",
+    "browser",
+    "playwright",
+    "multi-agent"
+  ],
+  "bugs": {
+    "url": "https://github.com/Tsutomu-miku/cdp-browser-mcp/issues"
+  },
+  "homepage": "https://github.com/Tsutomu-miku/cdp-browser-mcp#readme"
 }

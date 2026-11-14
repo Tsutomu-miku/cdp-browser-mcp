@@ -1,6 +1,6 @@
 import { chromium } from "playwright";
 import { createServer } from "node:http";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
@@ -80,7 +80,10 @@ const args = [
   "about:blank",
 ];
 const chrome = spawn(
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  process.env.CHROME_PATH ||
+    (process.platform === "darwin"
+      ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      : "/usr/bin/google-chrome"),
   args,
   { stdio: "ignore" },
 );
@@ -150,8 +153,9 @@ try {
     sw: await pa.evaluate(() => window.sw),
     sharedError: await pa.evaluate(() => window.sharedError),
   };
+  await mkdir("test-results", { recursive: true });
   await writeFile(
-    `evidence/spike-${blocked ? "block" : "baseline"}-${headed ? "headed" : "headless"}.json`,
+    `test-results/spike-${blocked ? "block" : "baseline"}-${headed ? "headed" : "headless"}.json`,
     JSON.stringify(out, null, 2),
   );
   console.log(JSON.stringify(out, null, 2));

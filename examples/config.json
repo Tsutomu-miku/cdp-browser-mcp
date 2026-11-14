@@ -1,11 +1,4 @@
 {
-  "stateDir": "/tmp/cdp-steward-demo",
-  "cdpPort": 9229,
-  "headless": false,
-  "leaseMs": 300000,
-  "maxTabs": 20,
-  "minFreeBytes": 536870912,
-  "maxDownloadBytes": 1073741824,
   "lanes": {
     "default": {},
     "blue": {

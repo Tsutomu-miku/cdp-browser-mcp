@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import { spawn } from "node:child_process";
-import { mkdir, writeFile, access } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { setTimeout as delay } from "node:timers/promises";
-import { loadConfig, configSchema } from "./config.js";
-import { Broker, readAdmin, rpc } from "./broker.js";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { loadConfig, configSchema, headerSchema, idSchema } from "./config.js";
+import { Broker, rpc, SupervisorBusyError } from "./broker.js";
+import {
+  ensureSupervisor,
+  runningSupervisor,
+  type StartupMessage,
+} from "./supervisor.js";
 import { serveMcp } from "./mcp.js";
+
 const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
@@ -20,32 +23,103 @@ const { values, positionals } = parseArgs({
     headed: { type: "boolean" },
     headless: { type: "boolean" },
     "state-dir": { type: "string" },
-    help: { type: "boolean" },
+    "executable-path": { type: "string" },
+    json: { type: "boolean" },
+    version: { type: "boolean", short: "V" },
+    help: { type: "boolean", short: "h" },
   },
 });
 const command = positionals[0];
+const commands = [
+  "launch",
+  "serve",
+  "status",
+  "open",
+  "close",
+  "renew",
+  "reclaim",
+  "reconnect",
+  "stop",
+  "mcp",
+];
+const help = `cdp-browser-mcp — shared browser sessions for multiple agents
+
+Usage: cdp-browser-mcp <command> [options]
+
+Commands:
+  mcp --agent <id>       Start an MCP stdio server; start/reuse the shared browser
+  open [url]            Open a tab for manual login (default agent: manual)
+  launch                Start the shared browser in the background
+  status                Show browser health, tabs, agents and downloads
+  stop                  Stop the shared browser; keep login state and downloads
+  close --agent <id> --tab <id>   Close an agent's tab
+  renew --agent <id> --tab <id>   Extend a tab lease
+  reclaim --agent <id>   Close an agent's tabs and revoke its session
+  reconnect             Restart Chrome and invalidate existing tab leases
+  serve                 Run the browser service in the foreground
+
+Options:
+  --headers <json>      Per-tab request headers, e.g. '{"x-lane":"blue"}'
+  --lane <name>         Header template from config (default: default)
+  --config <file>       Optional JSON configuration
+  --state-dir <path>    Dedicated browser data directory
+  --executable-path <path>  Chrome executable (otherwise auto-detected)
+  --headed / --headless Choose the display mode when starting a new browser
+  --json                Print management command results as JSON
+  -V, --version         Print version
+  -h, --help            Show this help
+
+Examples:
+  cdp-browser-mcp mcp --agent codex
+  cdp-browser-mcp open https://example.com
+  cdp-browser-mcp status
+  cdp-browser-mcp stop`;
+
+function output(data: unknown, message: string) {
+  console.log(values.json ? JSON.stringify(data, null, 2) : message);
+}
+function startupMessage(message: StartupMessage) {
+  if (process.connected) process.send!(message);
+}
 async function main() {
-  if (values.help || !command) {
-    console.log(
-      `cdp-browser-steward <launch|serve|status|open|close|renew|reclaim|reconnect|stop|mcp>\n  --config /path/config.json --state-dir /path/dedicated-state\n  launch [--headed|--headless]    Start a detached local supervisor\n  status                        Show health + agent↔tab↔lane + downloads\n  open --agent A --lane blue [--headers '{"x-custom":"value"}'] [--url URL]\n  close --agent A --tab UUID     Close only this agent's tab\n  renew --agent A --tab UUID     Renew lease\n  reclaim --agent A             Revoke agent and close its tabs\n  reconnect                     Restart owned Chrome; invalidate all tabs\n  stop                          Stop Chrome, supervisor, socket; preserve profile/downloads\n  mcp --agent A --lane blue      MCP stdio; connect to running supervisor\nNo npm publish. CDP binds 127.0.0.1; control uses a 0600 Unix socket + bearer token.`,
+  if (values.version) {
+    const pkg = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
     );
+    console.log(pkg.version);
     return;
   }
-  const config = await loadConfig(values.config);
+  if (values.help || !command) {
+    console.log(help);
+    return;
+  }
+  if (!commands.includes(command))
+    throw Error(`Unknown command: ${command}. Run cdp-browser-mcp --help.`);
+  if (positionals.length > (command === "open" ? 2 : 1))
+    throw Error("Unexpected positional arguments");
+  const config =
+    command === "serve" && process.connected
+      ? configSchema.parse(
+          await new Promise((resolve) => process.once("message", resolve)),
+        )
+      : await loadConfig(values.config);
   if (values["state-dir"]) config.stateDir = resolve(values["state-dir"]);
+  if (values["executable-path"])
+    config.executablePath = resolve(values["executable-path"]);
   if (values.headed && values.headless)
-    throw Error("Choose headed or headless");
+    throw Error("Choose --headed or --headless");
   if (values.headed) config.headless = false;
   if (values.headless) config.headless = true;
   configSchema.parse(config);
   if (command === "serve") {
     const broker = new Broker(config);
-    await broker.start();
+    const starting = broker.start();
     let closing = false;
     const stop = async () => {
       if (closing) return;
       closing = true;
       try {
+        await starting;
         await broker.stop();
       } catch (e) {
         console.error(e);
@@ -58,116 +132,141 @@ async function main() {
     process.once("SIGTERM", () => {
       void stop();
     });
+    await starting;
+    startupMessage({ type: "ready" });
+    if (!process.connected)
+      console.error(
+        `Browser service ready (${config.stateDir}). Press Ctrl+C to stop.`,
+      );
+    return;
+  }
+  const headers = headerSchema.parse(
+    values.headers ? JSON.parse(values.headers) : {},
+  );
+  const agentId =
+    command === "open"
+      ? idSchema.parse(values.agent || "manual")
+      : values.agent;
+  if (command === "mcp") {
+    if (!agentId)
+      throw Error(
+        "--agent is required. Use a different ID for each MCP client.",
+      );
+    idSchema.parse(agentId);
+    await ensureSupervisor(config);
+    await serveMcp(config.stateDir, agentId, values.lane || "default", headers);
     return;
   }
   if (command === "launch") {
-    await mkdir(config.stateDir, { recursive: true, mode: 0o700 });
-    try {
-      const admin = await readAdmin(config.stateDir);
-      const health = await rpc(admin, "health");
-      console.log(JSON.stringify({ alreadyRunning: true, ...health }));
-      return;
-    } catch (e) {
-      if (
-        !["ENOENT", "ECONNREFUSED", "ENOTSOCK"].includes(
-          (e as NodeJS.ErrnoException).code || "",
-        )
-      )
-        throw e;
-    }
-    const snapshot = join(config.stateDir, "launch-config.json");
-    await writeFile(snapshot, JSON.stringify(config, null, 2), { mode: 0o600 });
-    const child = spawn(
-      process.execPath,
-      [fileURLToPath(import.meta.url), "serve", "--config", snapshot],
-      { detached: true, stdio: "ignore" },
+    const { admin, health, alreadyRunning } = await ensureSupervisor(config);
+    output(
+      { pid: admin.pid, stateDir: config.stateDir, alreadyRunning, ...health },
+      `Browser ${alreadyRunning ? "already running" : "started"} (${health.mode}).\nData: ${config.stateDir}\nStop: cdp-browser-mcp stop${values.config ? ` --config ${values.config}` : values["state-dir"] ? ` --state-dir ${config.stateDir}` : ""}`,
     );
-    child.unref();
-    let startupError: Error | undefined;
-    child.once("error", (e) => {
-      startupError = e;
-    });
-    for (let i = 0; i < 200; i++) {
-      if (startupError) throw startupError;
-      if (child.exitCode !== null || child.signalCode !== null)
-        throw Error(
-          `Supervisor exited. Inspect ${join(config.stateDir, "events.jsonl")} or run serve in foreground.`,
-        );
-      try {
-        const health = await rpc(await readAdmin(config.stateDir), "health");
-        console.log(
-          JSON.stringify({
-            pid: child.pid,
-            stateDir: config.stateDir,
-            ...health,
-          }),
-        );
-        return;
-      } catch (e) {
-        if (
-          !["ENOENT", "ECONNREFUSED", "ENOTSOCK"].includes(
-            (e as NodeJS.ErrnoException).code || "",
-          )
-        )
-          throw e;
-      }
-      await delay(100);
-    }
-    throw Error(
-      `Startup timed out; cleanup with stop --state-dir ${config.stateDir}`,
-    );
-  }
-  if (command === "mcp") {
-    if (!values.agent) throw Error("--agent required");
-    await serveMcp(config.stateDir, values.agent, values.lane || "default");
     return;
   }
-  const admin = await readAdmin(config.stateDir);
-  let result: unknown;
+  const running =
+    command === "open"
+      ? await ensureSupervisor(config)
+      : await runningSupervisor(config.stateDir);
+  if (!running) {
+    if (command === "status" || command === "stop") {
+      output({ running: false }, "Browser is not running.");
+      return;
+    }
+    throw Error("Browser is not running. Run cdp-browser-mcp launch first.");
+  }
+  const { admin } = running;
   switch (command) {
-    case "status":
+    case "status": {
+      const status = await rpc(admin, "status");
+      const tabs = status.tabs as {
+        agentId: string;
+        tabId: string;
+        lane: string;
+        url: string;
+      }[];
+      const rows = tabs.map(
+        (t) =>
+          `${t.agentId.padEnd(16)} ${t.tabId}  ${t.lane.padEnd(12)} ${t.url}`,
+      );
+      output(
+        status,
+        [
+          `Browser: ${status.ready ? "ready" : "unavailable"} (${status.mode})`,
+          `Data: ${config.stateDir}`,
+          `Agents: ${status.agents.length}  Tabs: ${tabs.length}  Downloads: ${status.downloads.length}`,
+          ...(status.diskError ? [`Disk: ${status.diskError}`] : []),
+          "",
+          ...(tabs.length
+            ? [
+                "AGENT            TAB                                   LANE         URL",
+                ...rows,
+              ]
+            : ["No active tabs."]),
+        ].join("\n"),
+      );
+      break;
+    }
     case "stop":
+      output(
+        await rpc(admin, "stop"),
+        "Stopping browser service. Login state and downloads are preserved.",
+      );
+      break;
     case "reconnect":
-      result = await rpc(admin, command);
+      output(
+        await rpc(admin, "reconnect"),
+        "Browser restarted. Existing tab leases have been released.",
+      );
       break;
     case "reclaim":
     case "renew":
     case "close":
-      result = await rpc(admin, command, {
-        agentId: values.agent,
-        tabId: values.tab,
-      });
+      output(
+        await rpc(admin, command, { agentId, tabId: values.tab }),
+        `${command === "reclaim" ? "Agent reclaimed" : command === "renew" ? "Lease renewed" : "Tab closed"}: ${command === "reclaim" ? agentId : values.tab}`,
+      );
       break;
     case "open": {
-      const t = await rpc(admin, "open", {
-        agentId: values.agent,
+      const tab = await rpc(admin, "open", {
+        agentId,
         lane: values.lane || "default",
-        headers: values.headers ? JSON.parse(values.headers) : {},
+        headers,
       });
-      result = values.url
+      const url = positionals[1] || values.url;
+      const result = url
         ? {
-            ...t,
+            ...tab,
             result: await rpc(admin, "action", {
-              agentId: values.agent,
-              tabId: t.tabId,
+              agentId,
+              tabId: tab.tabId,
               action: "navigate",
-              args: { url: values.url },
+              args: { url },
             }),
           }
-        : t;
+        : tab;
+      output(
+        result,
+        `Opened ${url || "about:blank"}\nAgent: ${agentId}\nTab: ${tab.tabId}\nLane: ${tab.lane}\nThe tab lease expires after ${config.leaseMs / 1000}s of inactivity; use renew to extend it.`,
+      );
       break;
     }
-    default:
-      throw Error(`Unknown command ${command}`);
   }
-  console.log(JSON.stringify(result, null, 2));
 }
 main().catch((e) => {
-  console.error(
-    JSON.stringify({
-      event: "error",
-      error: e instanceof Error ? e.message : String(e),
-    }),
-  );
+  const error = e instanceof Error ? e.message : String(e);
+  if (process.connected)
+    startupMessage(
+      e instanceof SupervisorBusyError
+        ? { type: "busy" }
+        : { type: "error", error },
+    );
+  else
+    console.error(
+      values.json || command === "mcp"
+        ? JSON.stringify({ event: "error", error })
+        : `Error: ${error}`,
+    );
   process.exitCode = 1;
 });

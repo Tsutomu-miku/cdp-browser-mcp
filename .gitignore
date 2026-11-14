@@ -19,3 +19,4 @@ launch-config.json
 events.jsonl*
 DevToolsActivePort
 Singleton*
+test-results/

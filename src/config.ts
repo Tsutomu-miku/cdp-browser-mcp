@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { dirname, resolve, join } from "node:path";
-import { readFile, access } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { z } from "zod";
 export const headerSchema = z
   .record(
@@ -33,9 +33,9 @@ export const configSchema = z
         (v) => Buffer.byteLength(join(v, "control.sock")) <= 100,
         "stateDir socket path exceeds 100 bytes",
       )
-      .default(join(homedir(), ".local/state/cdp-browser-steward")),
+      .default(join(homedir(), ".local/state/cdp-browser-mcp")),
     executablePath: z.string().optional(),
-    cdpPort: z.number().int().min(0).max(65535).default(9229),
+    cdpPort: z.number().int().min(0).max(65535).default(0),
     headless: z.boolean().default(process.platform === "linux"),
     leaseMs: z.number().int().min(1000).default(300000),
     maxTabs: z.number().int().positive().default(20),
@@ -70,30 +70,6 @@ export async function loadConfig(file?: string): Promise<Config> {
     );
   if (config.executablePath)
     config.executablePath = resolve(config.executablePath);
-  else {
-    const candidates =
-      process.platform === "darwin"
-        ? ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
-        : [
-            "/usr/bin/google-chrome",
-            "/usr/bin/google-chrome-stable",
-            "/usr/bin/chromium",
-            "/usr/bin/chromium-browser",
-          ];
-    for (const p of candidates) {
-      try {
-        await access(p);
-        config.executablePath = p;
-        break;
-      } catch (e) {
-        if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
-      }
-    }
-  }
-  if (!config.executablePath)
-    throw Error(
-      "Chrome is missing. Set executablePath; no browser or system packages are installed automatically.",
-    );
   return config;
 }
 export const idSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/);

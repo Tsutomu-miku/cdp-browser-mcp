@@ -8,6 +8,7 @@ import {
   rm,
   statfs,
   stat,
+  access,
 } from "node:fs/promises";
 import { appendFileSync, existsSync, renameSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -56,6 +57,29 @@ export class ChromeProcess {
     readonly config: Config,
     readonly log: Log,
   ) {}
+  private async executable() {
+    if (this.config.executablePath) return this.config.executablePath;
+    const candidates =
+      process.platform === "darwin"
+        ? ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+        : [
+            "/usr/bin/google-chrome",
+            "/usr/bin/google-chrome-stable",
+            "/usr/bin/chromium",
+            "/usr/bin/chromium-browser",
+          ];
+    for (const path of candidates) {
+      try {
+        await access(path);
+        return path;
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+      }
+    }
+    throw Error(
+      "Chrome was not found. Install Chrome or set executablePath in your configuration.",
+    );
+  }
   private async closeOrphan(profile: string) {
     const active = join(profile, "DevToolsActivePort");
     const record = join(this.config.stateDir, "chrome-endpoint.json");
@@ -118,6 +142,7 @@ export class ChromeProcess {
     throw Error("Owned orphan Chrome did not stop");
   }
   async start() {
+    const executable = await this.executable();
     await mkdir(this.config.stateDir, { recursive: true, mode: 0o700 });
     const profile = join(this.config.stateDir, "profile"),
       marker = join(profile, ".steward-profile");
@@ -180,7 +205,7 @@ export class ChromeProcess {
       ...(this.config.headless ? ["--headless=new"] : []),
       "about:blank",
     ];
-    this.child = spawn(this.config.executablePath!, args, {
+    this.child = spawn(executable, args, {
       detached: true,
       stdio: "ignore",
     });

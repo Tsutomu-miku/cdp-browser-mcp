@@ -7,13 +7,14 @@ export async function serveMcp(
   stateDir: string,
   agentId: string,
   lane: string,
+  headers: Record<string, string> = {},
 ) {
   const admin = await readAdmin(stateDir),
     session = await rpc<{ token: string }>(admin, "register", { agentId });
   const call = (method: string, params: Record<string, unknown> = {}) =>
     rpc(admin, method, params, session.token);
   const server = new McpServer({
-    name: "cdp-browser-steward",
+    name: "cdp-browser-mcp",
     version: "0.1.0",
   });
   let activeTab: string | undefined;
@@ -22,7 +23,7 @@ export async function serveMcp(
     content: [{ type: "text" as const, text: JSON.stringify(data) }],
   });
   const tab = async () => {
-    if (!activeTab) activeTab = (await call("open", { lane })).tabId;
+    if (!activeTab) activeTab = (await call("open", { lane, headers })).tabId;
     return activeTab!;
   };
   const run = async (action: string, args: Record<string, unknown>) =>
@@ -116,7 +117,7 @@ export async function serveMcp(
       if (args.action === "new") {
         const t = await call("open", {
           lane: args.lane || lane,
-          headers: args.headers || {},
+          headers: { ...headers, ...args.headers },
         });
         activeTab = t.tabId;
         return result(t);
@@ -167,6 +168,11 @@ export async function serveMcp(
     void stop();
   });
   process.once("SIGINT", () => {
+    void stop();
+  });
+  // StdioServerTransport does not translate stdin EOF into onclose. Without
+  // this handler a normal client disconnect exits before releasing its tabs.
+  process.stdin.once("end", () => {
     void stop();
   });
   const transport = new StdioServerTransport();

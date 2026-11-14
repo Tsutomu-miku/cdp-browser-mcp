@@ -1,0 +1,65 @@
+{
+  "mode": "headed",
+  "concurrentClients": 2,
+  "browserStarts": 1,
+  "configFileRequired": false,
+  "sharedCookie": true,
+  "clientHeadersInheritedByNewTabs": true,
+  "perTabHeaderOverride": true,
+  "otherClientSurvivedDisconnect": true,
+  "browserRemainedRunning": true,
+  "requests": [
+    {
+      "sequence": 1,
+      "method": "GET",
+      "path": "/login",
+      "agent": null,
+      "lane": "A",
+      "dest": "document"
+    },
+    {
+      "sequence": 2,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "A",
+      "lane": "A",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 3,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "B",
+      "lane": "B",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 4,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "A",
+      "lane": "A",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 5,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "C",
+      "lane": "custom",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 6,
+      "method": "GET",
+      "path": "/login",
+      "agent": null,
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    }
+  ]
+}
