@@ -144,3 +144,5 @@ Cookies and same-origin storage are shared intentionally: logging out affects ev
 - [Architecture and isolation model](docs/architecture.md)
 - [Tests and validation records](docs/testing.md)
 - [Development](CONTRIBUTING.md)
+
+License: MIT

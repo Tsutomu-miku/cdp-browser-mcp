@@ -18,7 +18,7 @@
     "typescript": "^5.9.0"
   },
   "description": "Shared-identity CDP browser with per-agent tab leases and MCP tools",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bin": {
     "cdp-browser-mcp": "dist/cli.js"
   },
