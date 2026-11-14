@@ -9,16 +9,15 @@ A shared Chrome browser for multiple AI agents. Log in once, give each agent its
 
 Requires **Node.js 22+** and **Google Chrome or Chromium** on macOS or Linux.
 
-## Install
+## Quick start
 
-Install from GitHub:
+Run directly from GitHub:
 
 ```sh
-npm install --global git+https://github.com/Tsutomu-miku/cdp-browser-mcp.git
-cdp-browser-mcp --help
+npx --yes github:Tsutomu-miku/cdp-browser-mcp --help
 ```
 
-The package is not published to the npm registry. Git installation builds the CLI automatically; [source installation](CONTRIBUTING.md) is also available.
+The package is not published to the npm registry. `npx` builds and caches the Git package automatically. For a persistent local command, see [source installation](CONTRIBUTING.md).
 
 ## Connect your agent
 
@@ -28,8 +27,14 @@ Add this to your client's MCP configuration:
 {
   "mcpServers": {
     "browser": {
-      "command": "cdp-browser-mcp",
-      "args": ["mcp", "--agent", "agent-a"]
+      "command": "npx",
+      "args": [
+        "--yes",
+        "github:Tsutomu-miku/cdp-browser-mcp",
+        "mcp",
+        "--agent",
+        "agent-a"
+      ]
     }
   }
 }
@@ -41,16 +46,16 @@ For Codex, add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.browser]
-command = "cdp-browser-mcp"
-args = ["mcp", "--agent", "codex"]
+command = "npx"
+args = ["--yes", "github:Tsutomu-miku/cdp-browser-mcp", "mcp", "--agent", "codex"]
 ```
 
-The installed command must be on the MCP client's `PATH`. See [client configuration](docs/configuration.md#mcp-clients) for an `npx` alternative.
+Node.js and `npx` must be on the MCP client's `PATH`. See [client configuration](docs/configuration.md#mcp-clients) for local installation options.
 
 ## Log in once
 
 ```sh
-cdp-browser-mcp open https://example.com
+npx --yes github:Tsutomu-miku/cdp-browser-mcp open https://example.com
 ```
 
 Log in in the dedicated Chrome window. Other agents share that session. macOS opens a visible browser by default; Linux defaults to headless. To use a visible browser on Linux, start it with `launch --headed` in a graphical session.
@@ -58,8 +63,8 @@ Log in in the dedicated Chrome window. Other agents share that session. macOS op
 The browser stays running when an MCP client exits. Its login state is stored in `~/.local/state/cdp-browser-mcp`, independently of your everyday Chrome profile.
 
 ```sh
-cdp-browser-mcp status
-cdp-browser-mcp stop
+npx --yes github:Tsutomu-miku/cdp-browser-mcp status
+npx --yes github:Tsutomu-miku/cdp-browser-mcp stop
 ```
 
 ## Per-tab headers
@@ -70,8 +75,10 @@ Set headers for all tabs opened by an MCP client:
 {
   "mcpServers": {
     "blue": {
-      "command": "cdp-browser-mcp",
+      "command": "npx",
       "args": [
+        "--yes",
+        "github:Tsutomu-miku/cdp-browser-mcp",
         "mcp",
         "--agent",
         "agent-a",
@@ -80,8 +87,10 @@ Set headers for all tabs opened by an MCP client:
       ]
     },
     "green": {
-      "command": "cdp-browser-mcp",
+      "command": "npx",
       "args": [
+        "--yes",
+        "github:Tsutomu-miku/cdp-browser-mcp",
         "mcp",
         "--agent",
         "agent-b",

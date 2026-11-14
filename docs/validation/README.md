@@ -13,6 +13,7 @@ Each run includes concurrent MCP operations, shared cookies, ordinary resources,
 - [Blocked headless probe](spike-block-headless.json) and [blocked visible probe](spike-block-headed.json): shared/SW scripts and fetches received by the server: zero.
 - [Concurrent first startup, headless](mcp-startup-headless.json) and [visible](mcp-startup-headed.json): two MCP clients start exactly one Chrome, share a login, inherit client headers on new tabs, and release tabs on a clean disconnect.
 - [CLI lifecycle](cli-lifecycle.json): detached launch, reuse, permission checks, orphan browser recovery, and process/socket cleanup.
+- [Git installation](git-install.json): public Git install, npx MCP cold start/tool call/disconnect, and global tarball installation. The current npm global Git preparation failure is recorded separately.
 - [Package manifest](pack.json): packaged files and integrity from an installed-bin smoke test.
 
 These are captured records, not files rewritten by every test run. Current test output is written to `test-results/`. See [testing](../testing.md) for commands and platform scope.

@@ -2,6 +2,8 @@
 
 ## Linux
 
+Install the command from a [built tarball](../CONTRIBUTING.md) before following the examples below.
+
 Install Node.js 22+ and Chrome/Chromium using your system's package manager. The tool does not install browsers or system dependencies. Linux uses `--headless=new` by default:
 
 ```sh

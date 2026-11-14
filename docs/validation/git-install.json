@@ -1,0 +1,16 @@
+{
+  "npxGitMcp": true,
+  "automaticBrowserStartup": true,
+  "toolCall": true,
+  "cleanDisconnect": true,
+  "mode": "headless=new",
+  "node": "22.17.0",
+  "npm": "11.17.0",
+  "sourceCommit": "0c6e7fe29f7d739d80c4004172ad05de72f0bb5d",
+  "localGitInstall": true,
+  "globalTarballInstall": true,
+  "globalGitInstall": {
+    "passed": false,
+    "reason": "npm Git preparation inherited global install settings; build dependencies were unavailable. Use the tested npx entry point or built tarball."
+  }
+}

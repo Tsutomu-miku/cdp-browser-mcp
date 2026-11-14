@@ -13,9 +13,12 @@ node dist/cli.js --help
 To install the local checkout as a command:
 
 ```sh
-npm link
+npm pack
+npm install --global ./cdp-browser-mcp-0.1.0.tgz
 cdp-browser-mcp --help
 ```
+
+Installing a built tarball avoids Git preparation during global installation. Some npm versions propagate global install settings into Git preparation, leaving build dependencies unavailable; use the `npx` entry point or the tarball above.
 
 If lifecycle scripts are restricted by your package manager, `npm run build` builds the executable explicitly.
 

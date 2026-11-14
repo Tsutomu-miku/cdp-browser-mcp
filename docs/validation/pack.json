@@ -2,20 +2,20 @@
   "id": "cdp-browser-mcp@0.1.0",
   "name": "cdp-browser-mcp",
   "version": "0.1.0",
-  "size": 26190,
-  "unpackedSize": 95571,
-  "shasum": "c0fce0e950cc0df2d4f2313a351fdecb6d8037ef",
-  "integrity": "sha512-51hs5uTggEoNq1dPf/+V75Qbh0XeTcALrEmLhhjt6h9zkXqPnaZ5Mc2N+1GOJQKok6Agz9bFF8PB2nwFg3YoTA==",
+  "size": 26390,
+  "unpackedSize": 96507,
+  "shasum": "328d07a454083ca29df9c3b1e2c48a990ccac47d",
+  "integrity": "sha512-RJ2p+A4jy4EFhUubVopT1vAAqQkXQTH3e77KySkA2p0P1eL1m0M0jA4hw7vPuMLjP2dog2yTm22Dnj8IJ3R3mg==",
   "filename": "cdp-browser-mcp-0.1.0.tgz",
   "files": [
     {
       "path": "CONTRIBUTING.md",
-      "size": 1112,
+      "size": 1402,
       "mode": 420
     },
     {
       "path": "README.md",
-      "size": 4559,
+      "size": 4863,
       "mode": 420
     },
     {
@@ -105,12 +105,12 @@
     },
     {
       "path": "docs/configuration.md",
-      "size": 6433,
+      "size": 6674,
       "mode": 420
     },
     {
       "path": "docs/deployment.md",
-      "size": 3917,
+      "size": 4018,
       "mode": 420
     },
     {
@@ -131,6 +131,6 @@
   ],
   "entryCount": 24,
   "bundled": [],
-  "binSmokeTest": "installed tarball: cdp-browser-mcp --help and --version",
+  "binSmokeTest": "global tarball install: cdp-browser-mcp --version",
   "npmPublish": false
 }

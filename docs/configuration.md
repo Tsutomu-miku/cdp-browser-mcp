@@ -1,6 +1,6 @@
 # Configuration
 
-The default setup needs no configuration file. CLI options override the optional JSON configuration:
+The default setup needs no configuration file. Examples below use the installed `cdp-browser-mcp` command. When running from Git, replace it with `npx --yes github:Tsutomu-miku/cdp-browser-mcp`. CLI options override the optional JSON configuration:
 
 ```sh
 cdp-browser-mcp mcp --agent agent-a --headless
@@ -83,7 +83,7 @@ Each successful browser action renews the tab lease. Manual login tabs expire to
 
 Use a different `--agent` ID per concurrent MCP process. The MCP server lazily creates its first tab. The background browser is shared and remains running until `stop`; disconnecting one client does not stop other clients.
 
-For a client that cannot find the globally installed binary, use `npx`:
+Use `npx` to run the Git package without a global installation:
 
 ```json
 {
@@ -92,8 +92,7 @@ For a client that cannot find the globally installed binary, use `npx`:
       "command": "npx",
       "args": [
         "--yes",
-        "--package=git+https://github.com/Tsutomu-miku/cdp-browser-mcp.git",
-        "cdp-browser-mcp",
+        "github:Tsutomu-miku/cdp-browser-mcp",
         "mcp",
         "--agent",
         "agent-a"
@@ -103,14 +102,16 @@ For a client that cannot find the globally installed binary, use `npx`:
 }
 ```
 
+For a locally installed tarball, use `"command": "cdp-browser-mcp"` and `"args": ["mcp", "--agent", "agent-a"]` instead.
+
 Git installations run the package's `prepare` build. If your package manager blocks lifecycle scripts, follow [source installation](../CONTRIBUTING.md) and configure the resulting executable path instead. Do not disable your global script policy just to install this tool.
 
 Codex supports the same command and args in [`config.toml`](https://learn.chatgpt.com/docs/extend/mcp?surface=cli):
 
 ```toml
 [mcp_servers.browser]
-command = "cdp-browser-mcp"
-args = ["mcp", "--agent", "codex"]
+command = "npx"
+args = ["--yes", "github:Tsutomu-miku/cdp-browser-mcp", "mcp", "--agent", "codex"]
 ```
 
 After a browser restart, refs and leases from previous tabs are invalid. Use `browser_tabs` to list or create tabs before continuing.
