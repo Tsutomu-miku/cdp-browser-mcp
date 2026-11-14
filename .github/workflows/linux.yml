@@ -1,0 +1,67 @@
+name: Linux Chrome
+
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        "src/**",
+        "test/**",
+        "package*.json",
+        "tsconfig.json",
+        ".github/workflows/linux.yml",
+      ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  headless:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        chrome: ["136.0.7103.113", "146.0.7680.165"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Download pinned Chrome for Testing
+        shell: python
+        env:
+          CHROME_VERSION: ${{ matrix.chrome }}
+        run: |
+          import os, pathlib, subprocess, urllib.request, zipfile
+          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "chrome-for-testing"
+          root.mkdir()
+          version = os.environ["CHROME_VERSION"]
+          archive = root / "chrome.zip"
+          urllib.request.urlretrieve(f"https://storage.googleapis.com/chrome-for-testing-public/{version}/linux64/chrome-linux64.zip", archive)
+          with zipfile.ZipFile(archive) as bundle:
+              bundle.extractall(root)
+              for entry in bundle.infolist():
+                  mode = entry.external_attr >> 16
+                  if mode:
+                      (root / entry.filename).chmod(mode)
+          chrome = root / "chrome-linux64" / "chrome"
+          subprocess.run([str(chrome), "--version"], check=True)
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"CHROME_PATH={chrome}\n")
+      - name: Install and run the full headless suite
+        shell: python
+        run: |
+          import subprocess
+          subprocess.run(["npm", "ci"], check=True)
+          subprocess.run(["npm", "test"], check=True)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-chrome-${{ matrix.chrome }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn

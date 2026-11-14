@@ -14,7 +14,7 @@ To install the local checkout as a command:
 
 ```sh
 npm pack
-npm install --global ./cdp-browser-mcp-0.1.0.tgz
+npm install --global ./cdp-browser-mcp-0.1.1.tgz
 cdp-browser-mcp --help
 ```
 

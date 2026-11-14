@@ -26,9 +26,10 @@ export class Downloads {
     readonly root: string,
     readonly log: Log,
     readonly fatal: (e: unknown) => void,
-    readonly browserContextId?: string,
   ) {
-    this.contextGuid = browserContextId || randomUUID();
+    // Local staging identity, not a CDP browserContextId. This service owns
+    // the persistent default context, selected by omitting that CDP parameter.
+    this.contextGuid = randomUUID();
     this.staging = join(root, "staging", this.contextGuid);
   }
   async start() {
@@ -50,7 +51,6 @@ export class Downloads {
       behavior: blocked ? "deny" : "allowAndName",
       downloadPath: this.staging,
       eventsEnabled: true,
-      browserContextId: this.browserContextId,
     });
     if (blocked) await this.cancelAll();
   }
@@ -83,7 +83,6 @@ export class Downloads {
     if (this.blocked || !owner) {
       await this.cdp.send("Browser.cancelDownload", {
         guid: e.guid,
-        browserContextId: this.browserContextId,
       });
       this.log("download.rejected", {
         guid: e.guid,
@@ -132,7 +131,6 @@ export class Downloads {
       if (p.owner.tabId === tabId)
         await this.cdp.send("Browser.cancelDownload", {
           guid,
-          browserContextId: this.browserContextId,
         });
     const s = this.sessions.get(tabId);
     this.sessions.delete(tabId);
@@ -142,7 +140,6 @@ export class Downloads {
     for (const guid of this.pending.keys())
       await this.cdp.send("Browser.cancelDownload", {
         guid,
-        browserContextId: this.browserContextId,
       });
   }
   async abandon() {

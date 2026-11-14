@@ -93,10 +93,6 @@ export class Steward {
     await this.context.route("**/*", (route) => this.route(route));
     if (this.cookies.length) await this.context.addCookies(this.cookies);
     await this.rememberCookies();
-    const targets = await cdp.send("Target.getTargets");
-    const contextId = targets.targetInfos.find(
-      (t) => t.type === "page",
-    )?.browserContextId;
     this.anchor =
       this.context.pages().find((p) => p.url() === "about:blank") ||
       (await this.context.newPage());
@@ -118,7 +114,6 @@ export class Steward {
           this.log("reconnect.failed", { error: String(e) }),
         );
       },
-      contextId,
     );
     await this.downloads.start();
     this.browser.on("disconnected", () => {

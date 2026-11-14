@@ -24,7 +24,11 @@ Generated request logs and results go to the ignored `test-results/` directory. 
 
 [Archived request-level records](https://github.com/Tsutomu-miku/cdp-browser-mcp/tree/main/docs/validation) document macOS Chrome runs in visible and `headless=new` modes. All identities and hosts in those records are synthetic.
 
-Linux/Xvfb deployment, cross-host login migration, IDE-level client setup, and external browser providers have not been exercised on their target environments. macOS headless results do not establish Linux compatibility. The MCP transport and tool calls are tested directly using the MCP SDK.
+The [Linux Chrome workflow](../.github/workflows/linux.yml) pins Chrome for Testing 136.0.7103.113 and 146.0.7680.165 on Ubuntu 22.04 and runs all four existing tests in `headless=new`. The startup and concurrent-download scenarios guard the default-context download contract: the browser-level CDP commands omit `browserContextId`, and downloads still arrive in separate agent/tab directories.
+
+The official CDP definitions specify that omitting `browserContextId` selects the default context for both [setDownloadBehavior](https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-setDownloadBehavior) and [cancelDownload](https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-cancelDownload). No platform/version selection or retry path is involved. The staging UUID is generated locally and never sent as a context ID.
+
+Linux headed/Xvfb deployment, cross-host login migration, IDE-level client setup, and external browser providers have not been exercised on their target environments. The MCP transport and tool calls are tested directly using the MCP SDK.
 
 ## Worker probe
 

@@ -47,7 +47,7 @@ There is no switch to preserve shared/background workers. Supporting sites that 
 
 ## Downloads and disk usage
 
-Downloads are staged using the browser context GUID and Chrome download GUID:
+Downloads are staged using a local UUID for each default-context connection and Chrome's download GUID:
 
 ```text
 stateDir/downloads/staging/<context-guid>/<download-guid>
@@ -55,6 +55,8 @@ stateDir/downloads/agents/<agent-id>/<tab-id>/<download-guid>-<safe-name>
 ```
 
 The download event's frame ID maps to its page and agent. Completed files are moved only after validating their staging path. Unknown frame downloads are canceled. Duplicate completion events are idempotent; cross-origin frame swaps retain ownership. Closing a tab cancels unfinished downloads. Completed files persist; the MCP list contains completions from the current service lifetime.
+
+The service uses a browser-level CDP session and the persistent default context. Both `Browser.setDownloadBehavior` and `Browser.cancelDownload` omit `browserContextId`: [CDP specifies that omission selects the default context](https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-setDownloadBehavior). A page target's reported context ID is not used as a download-command context ID. The local staging UUID is only a filesystem namespace; download isolation comes from GUID naming and frame/page/agent attribution.
 
 Free space and download size are checked at startup, before opening tabs, and periodically. The soft limit rejects new work and cancels active downloads until space is available. It never deletes completed downloads or login data. Use filesystem quotas for a hard storage limit.
 

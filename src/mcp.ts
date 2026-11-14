@@ -15,7 +15,7 @@ export async function serveMcp(
     rpc(admin, method, params, session.token);
   const server = new McpServer({
     name: "cdp-browser-mcp",
-    version: "0.1.0",
+    version: "0.1.1",
   });
   let activeTab: string | undefined;
   let stopped = false;
