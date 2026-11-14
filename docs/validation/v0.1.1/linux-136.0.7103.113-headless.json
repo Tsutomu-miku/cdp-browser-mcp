@@ -1,0 +1,504 @@
+{
+  "testedAt": "2026-11-14T18:30:55.450Z",
+  "platform": "linux",
+  "chrome": "136.0.7103.113",
+  "playwright": "1.65.1",
+  "mode": "headless=new",
+  "site": "synthetic loopback; fixed test identity",
+  "checkpoints": {
+    "cookieSharedAcrossMCPClients": true,
+    "cookieSharedAcrossIndependentCDPClients": true,
+    "independentOperations": [
+      "navigate",
+      "type",
+      "snapshot",
+      "click by ref",
+      "extract",
+      "download",
+      "navigation"
+    ],
+    "crossAgentDenied": true,
+    "downloads": [
+      {
+        "agentId": "B",
+        "source": "cross-origin iframe",
+        "relativePath": "downloads/agents/B/ae24a28e-d56d-4832-8ae0-e6802f39d564/75917530-87b7-4cac-933d-987a8347697a-same-name.txt"
+      },
+      {
+        "agentId": "A",
+        "source": "main-frame",
+        "relativePath": "downloads/agents/A/f8acca80-5bae-42d8-90e1-cd1002de0a02/50dad7ab-2439-4118-8432-fca3f0f910b5-same-name.txt"
+      }
+    ],
+    "allRequestTypesVerified": [
+      "/page",
+      "/style",
+      "/script",
+      "/image",
+      "/fetch",
+      "/xhr",
+      "/beacon",
+      "/iframe",
+      "/iframe-fetch",
+      "/worker",
+      "/worker-fetch",
+      "/nested-worker",
+      "/nested-fetch",
+      "/iframe-worker",
+      "/iframe-worker-fetch",
+      "/navigation",
+      "/download"
+    ],
+    "workerPolicy": {
+      "shared": "disabled at Chrome launch",
+      "service": "registration script and all SW-owned requests aborted",
+      "forbiddenRequestsReceived": 0
+    },
+    "nativeCloseRecycled": true,
+    "leaseExpiryRecycled": true,
+    "reconnect": {
+      "ready": true,
+      "oldLeasesInvalidated": true,
+      "newPid": true,
+      "cookieRetained": true
+    },
+    "diskGuard": true
+  },
+  "requests": [
+    {
+      "sequence": 1,
+      "method": "GET",
+      "path": "/login",
+      "agent": null,
+      "lane": "A",
+      "environment": "blue",
+      "dest": "document"
+    },
+    {
+      "sequence": 2,
+      "method": "GET",
+      "path": "/page",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 3,
+      "method": "GET",
+      "path": "/style",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "style"
+    },
+    {
+      "sequence": 4,
+      "method": "GET",
+      "path": "/script",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "script"
+    },
+    {
+      "sequence": 5,
+      "method": "GET",
+      "path": "/image",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 6,
+      "method": "GET",
+      "path": "/fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 7,
+      "method": "GET",
+      "path": "/iframe",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 8,
+      "method": "POST",
+      "path": "/xhr",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 9,
+      "method": "POST",
+      "path": "/beacon",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 10,
+      "method": "GET",
+      "path": "/iframe",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 11,
+      "method": "GET",
+      "path": "/worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 12,
+      "method": "GET",
+      "path": "/iframe-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 13,
+      "method": "GET",
+      "path": "/iframe-worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 14,
+      "method": "GET",
+      "path": "/worker-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 15,
+      "method": "GET",
+      "path": "/nested-worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 16,
+      "method": "GET",
+      "path": "/page",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 17,
+      "method": "GET",
+      "path": "/iframe-worker-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 18,
+      "method": "GET",
+      "path": "/iframe-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "empty"
+    },
+    {
+      "sequence": 19,
+      "method": "GET",
+      "path": "/iframe-worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "worker"
+    },
+    {
+      "sequence": 20,
+      "method": "GET",
+      "path": "/style",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "style"
+    },
+    {
+      "sequence": 21,
+      "method": "GET",
+      "path": "/script",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "script"
+    },
+    {
+      "sequence": 22,
+      "method": "GET",
+      "path": "/image",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 23,
+      "method": "GET",
+      "path": "/nested-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 24,
+      "method": "GET",
+      "path": "/iframe",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 25,
+      "method": "POST",
+      "path": "/xhr",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 26,
+      "method": "GET",
+      "path": "/iframe",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 27,
+      "method": "GET",
+      "path": "/fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 28,
+      "method": "POST",
+      "path": "/beacon",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 29,
+      "method": "GET",
+      "path": "/worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 30,
+      "method": "GET",
+      "path": "/iframe-worker-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "empty"
+    },
+    {
+      "sequence": 31,
+      "method": "GET",
+      "path": "/iframe-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 32,
+      "method": "GET",
+      "path": "/iframe-worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 33,
+      "method": "GET",
+      "path": "/iframe-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "empty"
+    },
+    {
+      "sequence": 34,
+      "method": "GET",
+      "path": "/iframe-worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "worker"
+    },
+    {
+      "sequence": 35,
+      "method": "GET",
+      "path": "/worker-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 36,
+      "method": "GET",
+      "path": "/nested-worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 37,
+      "method": "GET",
+      "path": "/iframe-worker-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 38,
+      "method": "GET",
+      "path": "/iframe-worker-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "empty"
+    },
+    {
+      "sequence": 39,
+      "method": "GET",
+      "path": "/nested-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 40,
+      "method": "GET",
+      "path": "/download",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 41,
+      "method": "GET",
+      "path": "/download",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 42,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 43,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 44,
+      "method": "GET",
+      "path": "/navigation",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    }
+  ],
+  "testedSourceCommit": "c9818f000e6b3e36d60341696dd0831f6807b453",
+  "suite": {
+    "passed": 4,
+    "failed": 0
+  }
+}
