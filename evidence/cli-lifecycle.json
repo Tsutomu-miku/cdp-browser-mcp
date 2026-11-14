@@ -1,0 +1,16 @@
+{
+  "testedAt": "2026-11-14T15:16:57.018Z",
+  "dedicatedChrome": true,
+  "cdpLoopback": true,
+  "detachedLaunch": true,
+  "reusedExistingSupervisor": true,
+  "recoveredKilledSupervisor": true,
+  "orphanChromeClosed": true,
+  "socketMode": "0600",
+  "stateDirMode": "0700",
+  "adminMode": "0600",
+  "chromeStopped": true,
+  "supervisorStopped": true,
+  "socketRemoved": true,
+  "lockRemoved": true
+}

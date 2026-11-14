@@ -1,0 +1,46 @@
+{
+  "name": "cdp-browser-steward",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "playwright": "1.65.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0"
+  },
+  "description": "Shared-identity CDP browser with per-agent tab leases and MCP tools",
+  "license": "UNLICENSED",
+  "bin": {
+    "cdp-browser-steward": "dist/cli.js"
+  },
+  "exports": "./dist/steward.js",
+  "files": [
+    "dist",
+    "README.md",
+    "examples"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts",
+    "spike": "node spike/probe.mjs",
+    "test:headed": "STEWARD_HEADED=1 npm test"
+  },
+  "author": {
+    "name": "Tsutomu"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tsutomu-miku/cdp-browser-steward-tsutomu.git"
+  }
+}

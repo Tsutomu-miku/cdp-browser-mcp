@@ -1,0 +1,347 @@
+{
+  "mode": "headless=new",
+  "blocked": false,
+  "version": "157.0.8103.51",
+  "cookieShared": true,
+  "pageIndependent": true,
+  "records": [
+    {
+      "path": "/login",
+      "agent": null,
+      "headers": {
+        "dest": "document"
+      }
+    },
+    {
+      "path": "/favicon.ico",
+      "agent": null,
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/page",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "document"
+      }
+    },
+    {
+      "path": "/page",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "document"
+      }
+    },
+    {
+      "path": "/css",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "style"
+      }
+    },
+    {
+      "path": "/js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "script"
+      }
+    },
+    {
+      "path": "/img",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/css",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "style"
+      }
+    },
+    {
+      "path": "/js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "script"
+      }
+    },
+    {
+      "path": "/img",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/xhr",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/xhr",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/iframe",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "iframe"
+      }
+    },
+    {
+      "path": "/iframe",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "iframe"
+      }
+    },
+    {
+      "path": "/beacon",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/beacon",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/worker.js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/shared.js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "sharedworker"
+      }
+    },
+    {
+      "path": "/worker.js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/shared.js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "sharedworker"
+      }
+    },
+    {
+      "path": "/iframe-fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/favicon.ico",
+      "agent": null,
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/iframe-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/shared-fetch",
+      "agent": "B",
+      "headers": {
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/favicon.ico",
+      "agent": null,
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/shared-fetch",
+      "agent": "A",
+      "headers": {
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/worker-fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/nested.js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/sw.js",
+      "agent": "B",
+      "headers": {
+        "cookie": "identity=synthetic",
+        "dest": "serviceworker",
+        "sw": "script"
+      }
+    },
+    {
+      "path": "/sw-fetch",
+      "agent": "B",
+      "headers": {
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/worker-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/nested.js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/nested-fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/sw.js",
+      "agent": "A",
+      "headers": {
+        "cookie": "identity=synthetic",
+        "dest": "serviceworker",
+        "sw": "script"
+      }
+    },
+    {
+      "path": "/nested-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/sw-fetch",
+      "agent": "A",
+      "headers": {
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    }
+  ],
+  "intercepted": [],
+  "sw": "registered"
+}

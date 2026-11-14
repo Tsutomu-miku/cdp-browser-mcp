@@ -1,0 +1,101 @@
+{
+  "id": "cdp-browser-steward@0.1.0",
+  "name": "cdp-browser-steward",
+  "version": "0.1.0",
+  "size": 24361,
+  "unpackedSize": 81399,
+  "shasum": "e0f57372f64f8e409313c59391bf7eb45bcb8873",
+  "integrity": "sha512-Ei2om8IzRXAilsGE5btKYKdwRvB7ZQd58jwSGlfOmMrmi0harf+s2QBWaWIRJuxcyqefDG++BAqLZJ+Q6RsL7w==",
+  "filename": "cdp-browser-steward-0.1.0.tgz",
+  "files": [
+    {
+      "path": "README.md",
+      "size": 17080,
+      "mode": 420
+    },
+    {
+      "path": "dist/broker.d.ts",
+      "size": 725,
+      "mode": 420
+    },
+    {
+      "path": "dist/broker.js",
+      "size": 10077,
+      "mode": 420
+    },
+    {
+      "path": "dist/cli.d.ts",
+      "size": 31,
+      "mode": 420
+    },
+    {
+      "path": "dist/cli.js",
+      "size": 6352,
+      "mode": 420
+    },
+    {
+      "path": "dist/config.d.ts",
+      "size": 938,
+      "mode": 420
+    },
+    {
+      "path": "dist/config.js",
+      "size": 3160,
+      "mode": 420
+    },
+    {
+      "path": "dist/downloads.d.ts",
+      "size": 1259,
+      "mode": 420
+    },
+    {
+      "path": "dist/downloads.js",
+      "size": 5572,
+      "mode": 420
+    },
+    {
+      "path": "dist/mcp.d.ts",
+      "size": 98,
+      "mode": 420
+    },
+    {
+      "path": "dist/mcp.js",
+      "size": 5240,
+      "mode": 420
+    },
+    {
+      "path": "dist/runtime.d.ts",
+      "size": 668,
+      "mode": 420
+    },
+    {
+      "path": "dist/runtime.js",
+      "size": 10056,
+      "mode": 420
+    },
+    {
+      "path": "dist/steward.d.ts",
+      "size": 2684,
+      "mode": 420
+    },
+    {
+      "path": "dist/steward.js",
+      "size": 16006,
+      "mode": 420
+    },
+    {
+      "path": "examples/config.json",
+      "size": 372,
+      "mode": 420
+    },
+    {
+      "path": "package.json",
+      "size": 1081,
+      "mode": 420
+    }
+  ],
+  "entryCount": 17,
+  "bundled": [],
+  "binSmokeTest": "installed tarball: cdp-browser-steward --help",
+  "npmPublish": false
+}

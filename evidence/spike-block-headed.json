@@ -1,0 +1,391 @@
+{
+  "mode": "headed",
+  "blocked": true,
+  "version": "157.0.8103.51",
+  "cookieShared": true,
+  "pageIndependent": true,
+  "records": [
+    {
+      "path": "/login",
+      "agent": null,
+      "headers": {
+        "dest": "document"
+      }
+    },
+    {
+      "path": "/page",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "document"
+      }
+    },
+    {
+      "path": "/page",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "document"
+      }
+    },
+    {
+      "path": "/css",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "style"
+      }
+    },
+    {
+      "path": "/css",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "style"
+      }
+    },
+    {
+      "path": "/js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "script"
+      }
+    },
+    {
+      "path": "/img",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "script"
+      }
+    },
+    {
+      "path": "/img",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "image"
+      }
+    },
+    {
+      "path": "/fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/beacon",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/xhr",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/worker.js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/iframe",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "iframe"
+      }
+    },
+    {
+      "path": "/iframe",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "iframe"
+      }
+    },
+    {
+      "path": "/fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/xhr",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/beacon",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/worker.js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/nested.js",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/iframe-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/iframe-fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/nested.js",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "worker"
+      }
+    },
+    {
+      "path": "/worker-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/worker-fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/nested-fetch",
+      "agent": "A",
+      "headers": {
+        "lane": "A",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    },
+    {
+      "path": "/nested-fetch",
+      "agent": "B",
+      "headers": {
+        "lane": "B",
+        "cookie": "identity=synthetic",
+        "dest": "empty"
+      }
+    }
+  ],
+  "intercepted": [
+    {
+      "url": "http://127.0.0.1:57242/login",
+      "type": "document",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/page?a=A",
+      "type": "document",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/page?a=B",
+      "type": "document",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/css?a=A",
+      "type": "stylesheet",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/css?a=B",
+      "type": "stylesheet",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/js?a=A",
+      "type": "script",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/img?a=A",
+      "type": "image",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/js?a=B",
+      "type": "script",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/img?a=B",
+      "type": "image",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/fetch?a=A",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/iframe?a=A",
+      "type": "document",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/xhr?a=A",
+      "type": "xhr",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/worker.js?a=A",
+      "type": "script",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/beacon?a=A",
+      "type": "ping",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/fetch?a=B",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/iframe?a=B",
+      "type": "document",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/xhr?a=B",
+      "type": "xhr",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/beacon?a=B",
+      "type": "ping",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/worker.js?a=B",
+      "type": "script",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/iframe-fetch?a=A",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/iframe-fetch?a=B",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/worker-fetch?a=A",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/sw.js?a=A",
+      "type": "script",
+      "sw": "script",
+      "serviceWorker": true
+    },
+    {
+      "url": "http://127.0.0.1:57242/worker-fetch?a=B",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/nested-fetch?a=A",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/nested-fetch?a=B",
+      "type": "fetch",
+      "serviceWorker": false
+    },
+    {
+      "url": "http://127.0.0.1:57242/sw.js?a=B",
+      "type": "script",
+      "sw": "script",
+      "serviceWorker": true
+    }
+  ],
+  "sw": "Failed to register a ServiceWorker for scope ('http://127.0.0.1:57242/') with script ('http://127.0.0.1:57242/sw.js?a=A'): An unknown error occurred when fetching the script.",
+  "sharedError": "SharedWorker is not defined"
+}
