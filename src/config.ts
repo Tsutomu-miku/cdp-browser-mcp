@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { homedir } from "node:os";
 import { dirname, resolve, join } from "node:path";
 import { readFile } from "node:fs/promises";
@@ -27,6 +28,11 @@ export const headerSchema = z
   );
 export const configSchema = z
   .object({
+    backend: z.enum(["cdp", "extension"]).default("cdp"),
+    extensionId: z
+      .string()
+      .regex(/^[a-p]{32}$/)
+      .optional(),
     stateDir: z
       .string()
       .refine(
@@ -80,3 +86,9 @@ export function normalizeHeaders(headers: Record<string, string>) {
       .sort(([a], [b]) => a.localeCompare(b)),
   );
 }
+
+export const fingerprint = (headers: Record<string, string>) =>
+  createHash("sha256")
+    .update(JSON.stringify(headers))
+    .digest("hex")
+    .slice(0, 16);

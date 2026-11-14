@@ -29,7 +29,15 @@ export async function runningSupervisor(stateDir: string) {
 
 export async function ensureSupervisor(config: Config) {
   const existing = await runningSupervisor(config.stateDir);
-  if (existing) return { ...existing, alreadyRunning: true };
+  if (existing) {
+    // v0.1.0 health omitted backend and always meant CDP.
+    const backend = existing.health.backend ?? "cdp";
+    if (backend !== config.backend)
+      throw Error(
+        "This stateDir is running a different browser backend; use separate state directories",
+      );
+    return { ...existing, alreadyRunning: true };
+  }
 
   const child = spawn(
     process.execPath,

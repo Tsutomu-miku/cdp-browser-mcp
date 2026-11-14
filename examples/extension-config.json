@@ -1,0 +1,7 @@
+{
+  "backend": "extension",
+  "extensionId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "stateDir": "/absolute/path/to/extension-state",
+  "actionTimeoutMs": 15000,
+  "lanes": { "default": {} }
+}

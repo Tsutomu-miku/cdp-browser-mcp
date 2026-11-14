@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "CDP Browser MCP — Extension PoC",
+  "version": "0.2.0",
+  "version_name": "0.2.0-extension-poc.1",
+  "minimum_chrome_version": "120",
+  "description": "Local-only browser tools with explicit site permissions and per-tab request headers.",
+  "permissions": [
+    "nativeMessaging",
+    "scripting",
+    "tabs",
+    "activeTab",
+    "alarms",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": ["http://127.0.0.1/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Grant screenshot access to this tab" },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'"
+  },
+  "incognito": "not_allowed"
+}

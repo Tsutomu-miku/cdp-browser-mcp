@@ -15,7 +15,7 @@ export async function serveMcp(
     rpc(admin, method, params, session.token);
   const server = new McpServer({
     name: "cdp-browser-mcp",
-    version: "0.1.0",
+    version: "0.2.0-extension-poc.1",
   });
   let activeTab: string | undefined;
   let stopped = false;
@@ -87,6 +87,26 @@ export async function serveMcp(
     (args) => run("extract", args),
   );
   server.registerTool(
+    "browser_take_screenshot",
+    {
+      description:
+        "Capture the current tab. Extension backend requires activating the tab and clicking its toolbar button first.",
+      inputSchema: {},
+    },
+    async () => {
+      const shot = await call("action", {
+        tabId: await tab(),
+        action: "screenshot",
+        args: {},
+      });
+      return {
+        content: [
+          { type: "image" as const, data: shot.data, mimeType: shot.mimeType },
+        ],
+      };
+    },
+  );
+  server.registerTool(
     "browser_close",
     {
       description:
@@ -104,15 +124,49 @@ export async function serveMcp(
     "browser_tabs",
     {
       description:
-        "List, open, select or close this agent’s own tabs. No cross-agent selection.",
+        "List/open/select/close owned tabs. Extension backend also lists available Chrome tabs and explicitly attaches a chromeTabId; headers replaces a tab policy ({} removes).",
       inputSchema: {
-        action: z.enum(["list", "new", "select", "close"]),
+        action: z.enum([
+          "list",
+          "new",
+          "select",
+          "close",
+          "available",
+          "attach",
+          "headers",
+        ]),
+        chromeTabId: z
+          .number()
+          .int()
+          .nonnegative()
+          .optional()
+          .describe("Native Chrome tab ID for extension attach"),
         tabId: z.string().optional(),
         lane: z.string().optional(),
         headers: headerSchema.optional(),
       },
     },
     async (args) => {
+      if (args.action === "available") return result(await call("available"));
+      if (args.action === "attach") {
+        if (args.chromeTabId === undefined) throw Error("chromeTabId required");
+        const t = await call("attach", {
+          chromeTabId: args.chromeTabId,
+          lane: args.lane || lane,
+          headers: { ...headers, ...args.headers },
+        });
+        activeTab = t.tabId;
+        return result(t);
+      }
+      if (args.action === "headers") {
+        if (!args.headers) throw Error("headers required; use {} to remove");
+        return result(
+          await call("headers", {
+            tabId: args.tabId || (await tab()),
+            headers: args.headers,
+          }),
+        );
+      }
       if (args.action === "list") return result(await call("list"));
       if (args.action === "new") {
         const t = await call("open", {

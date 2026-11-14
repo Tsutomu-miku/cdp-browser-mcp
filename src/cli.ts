@@ -15,6 +15,8 @@ const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     config: { type: "string" },
+    backend: { type: "string" },
+    "chrome-tab": { type: "string" },
     agent: { type: "string" },
     lane: { type: "string" },
     tab: { type: "string" },
@@ -35,7 +37,14 @@ const { values, positionals } = parseArgs({
   },
 });
 const command = positionals[0];
-const browserActions = ["navigate", "click", "type", "snapshot", "extract"];
+const browserActions = [
+  "navigate",
+  "click",
+  "type",
+  "snapshot",
+  "extract",
+  "screenshot",
+];
 const commands = [
   "launch",
   "serve",
@@ -48,6 +57,9 @@ const commands = [
   "stop",
   "mcp",
   "tabs",
+  "available",
+  "attach",
+  "headers",
   "downloads",
   ...browserActions,
 ];
@@ -64,14 +76,18 @@ Commands:
   snapshot              Read an owned tab's accessibility snapshot and refs
   extract               Read visible text (optional --selector <css>)
   tabs --agent <id>     List only this agent's tabs
+  available --agent <id> List Chrome tabs (extension backend only)
+  attach --chrome-tab <number> --agent <id> Lease an existing Chrome tab
+  headers --agent <id> --tab <id> --headers <json> Replace extension tab headers; {} removes
+  screenshot            Capture an owned tab (extension requires activeTab gesture)
   downloads --agent <id>  List only this agent's completed downloads
-  launch                Start the shared browser in the background
+  launch                Start the local browser service in the background
   status                Show browser health, tabs, agents and downloads
   stop                  Stop the shared browser; keep login state and downloads
   close --agent <id> --tab <id>   Close an agent's tab
   renew --agent <id> --tab <id>   Extend a tab lease
   reclaim --agent <id>   Close an agent's tabs and revoke its session
-  reconnect             Restart Chrome and invalidate existing tab leases
+  reconnect             CDP: restart owned Chrome; extension: resync live tab rules
   serve                 Run the browser service in the foreground
 
 Options:
@@ -82,6 +98,7 @@ Options:
   --text <value>        Text to fill; --submit presses Enter; --slowly types keys
   --lane <name>         Header template from config (default: default)
   --config <file>       Optional JSON configuration
+  --backend <name>      cdp (default) or extension; extension requires config.extensionId
   --state-dir <path>    Dedicated browser data directory
   --executable-path <path>  Chrome executable (otherwise auto-detected)
   --headed / --headless Choose the display mode when starting a new browser
@@ -125,6 +142,8 @@ async function main() {
         )
       : await loadConfig(values.config);
   if (values["state-dir"]) config.stateDir = resolve(values["state-dir"]);
+  if (values.backend)
+    config.backend = configSchema.shape.backend.parse(values.backend);
   if (values["executable-path"])
     config.executablePath = resolve(values["executable-path"]);
   if (values.headed && values.headless)
@@ -169,7 +188,10 @@ async function main() {
       ? idSchema.parse(values.agent || "manual")
       : values.agent;
   const browserAction = browserActions.includes(command);
-  if (browserAction || ["tabs", "downloads"].includes(command)) {
+  if (
+    browserAction ||
+    ["tabs", "downloads", "available", "attach", "headers"].includes(command)
+  ) {
     if (!agentId) throw Error(`--agent is required for ${command}`);
     idSchema.parse(agentId);
   }
@@ -212,14 +234,13 @@ async function main() {
     const { admin, health, alreadyRunning } = await ensureSupervisor(config);
     output(
       { pid: admin.pid, stateDir: config.stateDir, alreadyRunning, ...health },
-      `Browser ${alreadyRunning ? "already running" : "started"} (${health.mode}).\nData: ${config.stateDir}\nStop: cdp-browser-mcp stop${values.config ? ` --config ${values.config}` : values["state-dir"] ? ` --state-dir ${config.stateDir}` : ""}`,
+      `Browser service ${alreadyRunning ? "already running" : "started"} (${health.mode}).\nData: ${config.stateDir}\nStop: cdp-browser-mcp stop${values.config ? ` --config ${values.config}` : values["state-dir"] ? ` --state-dir ${config.stateDir}` : ""}`,
     );
     return;
   }
-  const running =
-    command === "open"
-      ? await ensureSupervisor(config)
-      : await runningSupervisor(config.stateDir);
+  const running = ["open", "attach"].includes(command)
+    ? await ensureSupervisor(config)
+    : await runningSupervisor(config.stateDir);
   if (!running) {
     if (command === "status" || command === "stop") {
       output({ running: false }, "Browser is not running.");
@@ -235,10 +256,45 @@ async function main() {
       action: command,
       args: actionArgs,
     });
-    output(result, command === "extract" ? result.text : result.snapshot);
+    output(
+      result,
+      command === "screenshot"
+        ? JSON.stringify(result)
+        : command === "extract"
+          ? result.text
+          : result.snapshot,
+    );
     return;
   }
   switch (command) {
+    case "available": {
+      const tabs = await rpc(admin, "available", { agentId });
+      output(tabs, JSON.stringify(tabs, null, 2));
+      break;
+    }
+    case "attach": {
+      if (!values["chrome-tab"])
+        throw Error("attach requires --chrome-tab <number>");
+      const tab = await rpc(admin, "attach", {
+        agentId,
+        chromeTabId: Number(values["chrome-tab"]),
+        lane: values.lane || "default",
+        headers,
+      });
+      output(tab, JSON.stringify(tab, null, 2));
+      break;
+    }
+    case "headers": {
+      if (!values.tab || values.headers === undefined)
+        throw Error("headers requires --tab and --headers (use {} to remove)");
+      const result = await rpc(admin, "headers", {
+        agentId,
+        tabId: values.tab,
+        headers,
+      });
+      output(result, JSON.stringify(result, null, 2));
+      break;
+    }
     case "tabs": {
       const tabs = await rpc<{ tabId: string; lane: string; url: string }[]>(
         admin,
@@ -304,7 +360,9 @@ async function main() {
     case "reconnect":
       output(
         await rpc(admin, "reconnect"),
-        "Browser restarted. Existing tab leases have been released.",
+        config.backend === "extension"
+          ? "Extension connection checked and live tab rules resynchronized."
+          : "Browser restarted. Existing tab leases have been released.",
       );
       break;
     case "reclaim":

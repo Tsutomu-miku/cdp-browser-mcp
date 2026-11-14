@@ -18,6 +18,8 @@ import { z } from "zod";
 import { Steward } from "./steward.js";
 import { type Config, idSchema, headerSchema } from "./config.js";
 import { logger } from "./runtime.js";
+import type { BrowserBackend } from "./backend.js";
+import { ExtensionBackend } from "./extension-backend.js";
 export interface Admin {
   pid: number;
   token: string;
@@ -42,7 +44,14 @@ const openSchema = z.object({
 });
 const actionSchema = z.object({
   tabId: z.string().uuid(),
-  action: z.enum(["navigate", "click", "type", "snapshot", "extract"]),
+  action: z.enum([
+    "navigate",
+    "click",
+    "type",
+    "snapshot",
+    "extract",
+    "screenshot",
+  ]),
   args: z.record(z.string(), z.unknown()).default({}),
 });
 const same = (a: string, b: string) =>
@@ -101,14 +110,17 @@ async function body(req: IncomingMessage) {
   return envelope.parse(JSON.parse(data));
 }
 export class Broker {
-  readonly steward: Steward;
+  readonly steward: BrowserBackend;
   readonly admin: Admin;
   readonly agents = new Map<string, { agentId: string }>();
   private server?: Server;
   private closing?: Promise<void>;
   private locked = false;
   constructor(readonly config: Config) {
-    this.steward = new Steward(config, logger(config));
+    this.steward =
+      config.backend === "extension"
+        ? new ExtensionBackend(config, logger(config))
+        : new Steward(config, logger(config));
     this.admin = {
       pid: process.pid,
       token: randomBytes(32).toString("hex"),
@@ -264,6 +276,29 @@ export class Broker {
       }
       case "list":
         return this.steward.list(agentId);
+      case "available":
+        if (!this.steward.available)
+          throw Error("Available Chrome tabs require extension backend");
+        return this.steward.available();
+      case "attach": {
+        if (!this.steward.attach)
+          throw Error("Attaching existing tabs requires extension backend");
+        const v = openSchema.parse(p);
+        return this.steward.attach(
+          agentId,
+          z.number().int().nonnegative().parse(p.chromeTabId),
+          v.lane,
+          v.headers,
+        );
+      }
+      case "headers":
+        if (!this.steward.setHeaders)
+          throw Error("Dynamic header replacement requires extension backend");
+        return this.steward.setHeaders(
+          agentId,
+          z.string().uuid().parse(p.tabId),
+          headerSchema.parse(p.headers),
+        );
       case "close":
         return this.steward.closeTab(agentId, z.string().uuid().parse(p.tabId));
       case "renew":
@@ -273,6 +308,10 @@ export class Broker {
         return this.steward.action(agentId, v.tabId, v.action, v.args);
       }
       case "downloads":
+        if (this.config.backend === "extension")
+          throw Error(
+            "Extension PoC does not manage downloads; they remain in Chrome's configured directory",
+          );
         return (this.steward.downloads?.completed || []).filter(
           (d) => d.agentId === agentId,
         );

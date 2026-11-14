@@ -7,16 +7,18 @@ import {
   type Locator,
   type Cookie,
 } from "playwright";
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import {
   configSchema,
   idSchema,
   normalizeHeaders,
+  fingerprint,
   type Config,
 } from "./config.js";
 import { ChromeProcess, guardDisk, type Log } from "./runtime.js";
 import { Downloads } from "./downloads.js";
+import type { BrowserBackend } from "./backend.js";
 export interface Tab {
   tabId: string;
   agentId: string;
@@ -26,9 +28,7 @@ export interface Tab {
   expiresAt: number;
   busy: boolean;
 }
-export const fingerprint = (h: Record<string, string>) =>
-  createHash("sha256").update(JSON.stringify(h)).digest("hex").slice(0, 16);
-export class Steward {
+export class Steward implements BrowserBackend {
   readonly tabs = new Map<string, Tab>();
   readonly chrome: ChromeProcess;
   browser?: Browser;
@@ -363,6 +363,13 @@ export class Steward {
                 .innerText()
             ).slice(0, 100000),
           };
+        case "screenshot":
+          return {
+            mimeType: "image/jpeg",
+            data: (
+              await t.page.screenshot({ type: "jpeg", quality: 60 })
+            ).toString("base64"),
+          };
         default:
           throw Error(`Unknown browser action: ${method}`);
       }
@@ -382,6 +389,7 @@ export class Steward {
   }
   health() {
     return {
+      backend: "cdp",
       ready: this.ready && !this.diskError,
       connected: !!this.browser?.isConnected(),
       mode: this.config.headless ? "headless=new" : "headed",

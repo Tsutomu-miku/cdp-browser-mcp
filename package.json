@@ -1,6 +1,6 @@
 {
   "name": "cdp-browser-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0-extension-poc.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -28,7 +28,9 @@
     "CONTRIBUTING.md",
     "docs/*.md",
     "examples",
-    "skills"
+    "skills",
+    "extension",
+    "scripts/extension-setup.mjs"
   ],
   "scripts": {
     "build": "tsc",
@@ -37,7 +39,10 @@
     "spike": "node spike/probe.mjs",
     "test:headed": "STEWARD_HEADED=1 npm test",
     "pretest": "npm run build",
-    "format:check": "prettier --check src test spike examples skills README.md docs CONTRIBUTING.md package.json"
+    "format:check": "prettier --check src test extension scripts spike examples skills README.md docs CONTRIBUTING.md package.json",
+    "extension:prepare": "node scripts/extension-setup.mjs prepare",
+    "extension:install-native": "node scripts/extension-setup.mjs install-native",
+    "test:extension": "npm run build && node --import tsx --test test/extension.e2e.ts"
   },
   "author": {
     "name": "Tsutomu"
