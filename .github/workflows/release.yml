@@ -1,0 +1,59 @@
+name: Release tarball
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  tarball:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Require the tag to match package.json
+        shell: python
+        run: |
+          import json, os
+          from pathlib import Path
+          version = json.loads(Path("package.json").read_text())["version"]
+          if os.environ["GITHUB_REF_NAME"] != f"v{version}":
+              raise SystemExit("Release tag must equal v + package.json version")
+      - name: Build and check
+        shell: python
+        run: |
+          import subprocess
+          subprocess.run(["npm", "ci"], check=True)
+          subprocess.run(["npm", "run", "check"], check=True)
+      - name: Pack, inspect and attach the prebuilt tarball
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          import json, os, subprocess, tarfile
+          from pathlib import Path
+          package = json.loads(Path("package.json").read_text())
+          destination = Path(os.environ["RUNNER_TEMP"])
+          subprocess.run(["npm", "pack", "--pack-destination", str(destination)], check=True)
+          archive = destination / f"cdp-browser-mcp-{package['version']}.tgz"
+          with tarfile.open(archive) as tgz:
+              names = set(tgz.getnames())
+          required = {
+              "package/dist/cli.js", "package/skills/cdp-browser-mcp/SKILL.md",
+              "package/README.md", "package/CONTRIBUTING.md", "package/docs/deployment.md",
+              "package/examples/config.json",
+              "package/LICENSE", "package/NOTICE", "package/third_party/chrome-devtools-mcp-LICENSE",
+          }
+          if not required <= names:
+              raise SystemExit(f"Missing release files: {required - names}")
+          args = ["gh", "release", "create", os.environ["GITHUB_REF_NAME"], str(archive),
+                  "--verify-tag", "--title", os.environ["GITHUB_REF_NAME"], "--generate-notes"]
+          if "-" in package["version"]:
+              args.append("--prerelease")
+          subprocess.run(args, check=True)
