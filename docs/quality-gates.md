@@ -27,7 +27,7 @@ npm test
 ```
 
 Individual scripts: `build`, `typecheck`, `lint`, `depcruise` (also `arch`),
-`test:quality`, `evals`, `format:check`. `check` requires all of these. The
+`test:quality`, `test:install`, `evals`, `format:check`. `check` requires all of these. The
 executable `.githooks/pre-push` runs `check`; installation uses checkout-local
 Git configuration, including worktree-specific configuration for linked trees.
 Hooks are explicitly installed, not added to package preparation or consumers'

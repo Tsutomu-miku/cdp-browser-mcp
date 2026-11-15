@@ -19,13 +19,37 @@ The orchestration layer owns Chrome/profile lifecycle, agent↔tab/pageId leases
 
 ## Quick start
 
-Run directly from GitHub:
+### 1. Release installer (recommended)
+
+Install Node.js 22.12+, npm and curl first. Download the installer and run it in one line:
 
 ```sh
-npx --yes github:Tsutomu-miku/cdp-browser-mcp --help
+curl -fsSL https://raw.githubusercontent.com/Tsutomu-miku/cdp-browser-mcp/main/scripts/install.sh -o install.sh && sh install.sh
 ```
 
-The package is not published to the npm registry. `npx` builds and caches the Git package automatically. For a persistent local command, see [source installation](CONTRIBUTING.md).
+The default is the latest GitHub Release. Pin a published tag and choose a no-root prefix:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Tsutomu-miku/cdp-browser-mcp/main/scripts/install.sh -o install.sh && VERSION=v0.2.0 NPM_CONFIG_PREFIX="$HOME/.local" sh install.sh
+export PATH="$HOME/.local/bin:$PATH"
+cdp-browser-mcp --version
+```
+
+`v0.2.0` is an example: choose a published tag that contains `cdp-browser-mcp-<version>.tgz`. The installer downloads that prebuilt archive, uses npm as a local installer for its three runtime dependencies and bin link, checks `--version`, and prints MCP configuration. It never runs sudo. Missing Release assets fail explicitly and do not trigger a source build. See [installer options and permissions](docs/deployment.md#installation).
+
+**This project does not publish to npmjs. The public npm package with the same name is unrelated.** Do not install this project by registry name (`npm install -g cdp-browser-mcp` or `npx cdp-browser-mcp`). Runtime dependencies are still fetched from your configured npm registry.
+
+### 2. Build from a clone
+
+```sh
+git clone https://github.com/Tsutomu-miku/cdp-browser-mcp.git
+cd cdp-browser-mcp
+npm ci
+npm run build
+node dist/cli.js --version
+```
+
+See [development](CONTRIBUTING.md) to install your own built archive as a command.
 
 ## Connect your agent
 
@@ -34,9 +58,9 @@ The package is not published to the npm registry. `npx` builds and caches the Gi
 Import [`skills/cdp-browser-mcp`](skills/cdp-browser-mcp/SKILL.md) into your agent's skill library. The skill uses the CLI directly, so an agent with terminal access does not need an MCP configuration or browser extension. Each execution uses a unique agent ID, shares the dedicated browser's login, and releases only its own tabs when finished.
 
 ```sh
-npx --yes github:Tsutomu-miku/cdp-browser-mcp open --agent task-123 --json
-npx --yes github:Tsutomu-miku/cdp-browser-mcp navigate https://example.com --agent task-123 --tab <tab-id>
-npx --yes github:Tsutomu-miku/cdp-browser-mcp reclaim --agent task-123
+cdp-browser-mcp open --agent task-123 --json
+cdp-browser-mcp navigate https://example.com --agent task-123 --tab <tab-id>
+cdp-browser-mcp reclaim --agent task-123
 ```
 
 Use the returned `tabId` from `open`. Browser actions print snapshots or visible text; `--json` returns structured results. Execution output stays in the agent's existing terminal/tool log. The skill does not add a UI panel or install software by itself.
@@ -49,14 +73,8 @@ Add this to your client's MCP configuration:
 {
   "mcpServers": {
     "browser": {
-      "command": "npx",
-      "args": [
-        "--yes",
-        "github:Tsutomu-miku/cdp-browser-mcp",
-        "mcp",
-        "--agent",
-        "agent-a"
-      ]
+      "command": "cdp-browser-mcp",
+      "args": ["mcp", "--agent", "agent-a"]
     }
   }
 }
@@ -68,16 +86,16 @@ For Codex, add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.browser]
-command = "npx"
-args = ["--yes", "github:Tsutomu-miku/cdp-browser-mcp", "mcp", "--agent", "codex"]
+command = "cdp-browser-mcp"
+args = ["mcp", "--agent", "codex"]
 ```
 
-Node.js and `npx` must be on the MCP client's `PATH`. See [client configuration](docs/configuration.md#mcp-clients) for local installation options.
+Node.js and the prefix's `bin` directory must be on the MCP client's `PATH`. If the client does not inherit your shell PATH, use the installed command's absolute path. See [client configuration](docs/configuration.md#mcp-clients).
 
 ## Log in once
 
 ```sh
-npx --yes github:Tsutomu-miku/cdp-browser-mcp open https://example.com
+cdp-browser-mcp open https://example.com
 ```
 
 Log in in the dedicated Chrome window. Other agents share that session. macOS opens a visible browser by default; Linux defaults to headless. To use a visible browser on Linux, start it with `launch --headed` in a graphical session.
@@ -85,8 +103,8 @@ Log in in the dedicated Chrome window. Other agents share that session. macOS op
 The browser stays running when an MCP client exits. Its login state is stored in `~/.local/state/cdp-browser-mcp`, independently of your everyday Chrome profile.
 
 ```sh
-npx --yes github:Tsutomu-miku/cdp-browser-mcp status
-npx --yes github:Tsutomu-miku/cdp-browser-mcp stop
+cdp-browser-mcp status
+cdp-browser-mcp stop
 ```
 
 ## Per-tab headers
@@ -97,10 +115,8 @@ Set headers for all tabs opened by an MCP client, with an explicit hostname allo
 {
   "mcpServers": {
     "blue": {
-      "command": "npx",
+      "command": "cdp-browser-mcp",
       "args": [
-        "--yes",
-        "github:Tsutomu-miku/cdp-browser-mcp",
         "mcp",
         "--agent",
         "agent-a",
@@ -111,10 +127,8 @@ Set headers for all tabs opened by an MCP client, with an explicit hostname allo
       ]
     },
     "green": {
-      "command": "npx",
+      "command": "cdp-browser-mcp",
       "args": [
-        "--yes",
-        "github:Tsutomu-miku/cdp-browser-mcp",
         "mcp",
         "--agent",
         "agent-b",

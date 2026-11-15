@@ -1,6 +1,6 @@
 # Configuration
 
-Requires Google Chrome current Stable or newer on macOS or Linux, including headless=new. The default setup needs no configuration file. Examples below use the installed `cdp-browser-mcp` command. When running from Git, replace it with `npx --yes github:Tsutomu-miku/cdp-browser-mcp`. CLI options override the optional JSON configuration:
+Requires Google Chrome current Stable or newer on macOS or Linux, including headless=new. The default setup needs no configuration file. Examples below use the installed `cdp-browser-mcp` command. For a source checkout, replace it with `node /absolute/path/cdp-browser-mcp/dist/cli.js` after building. CLI options override the optional JSON configuration:
 
 ```sh
 cdp-browser-mcp mcp --agent agent-a --headless
@@ -97,35 +97,27 @@ Each successful browser action renews the tab lease. Manual login tabs expire to
 
 Use a different `--agent` ID per concurrent MCP process. The MCP server lazily creates its first tab. The background browser is shared and remains running until `stop`; disconnecting one client does not stop other clients.
 
-Use `npx` to run the Git package without a global installation:
+Install with the [Release installer or clone/build method](deployment.md#installation), then use the installed command:
 
 ```json
 {
   "mcpServers": {
     "browser": {
-      "command": "npx",
-      "args": [
-        "--yes",
-        "github:Tsutomu-miku/cdp-browser-mcp",
-        "mcp",
-        "--agent",
-        "agent-a"
-      ]
+      "command": "cdp-browser-mcp",
+      "args": ["mcp", "--agent", "agent-a"]
     }
   }
 }
 ```
 
-For a locally installed tarball, use `"command": "cdp-browser-mcp"` and `"args": ["mcp", "--agent", "agent-a"]` instead.
-
-Git installations run the package's `prepare` build. If your package manager blocks lifecycle scripts, follow [source installation](../CONTRIBUTING.md) and configure the resulting executable path instead. Do not disable your global script policy just to install this tool.
+Node.js and `<prefix>/bin` must be on the MCP client's PATH. For a client that does not inherit your shell PATH, set `command` to the executable's absolute path, for example `/home/you/.local/bin/cdp-browser-mcp` (JSON does not expand `$HOME`). For a built source checkout, use `"command": "node"` with `"args": ["/absolute/path/cdp-browser-mcp/dist/cli.js", "mcp", "--agent", "agent-a"]`.
 
 Codex supports the same command and args in [`config.toml`](https://learn.chatgpt.com/docs/extend/mcp?surface=cli):
 
 ```toml
 [mcp_servers.browser]
-command = "npx"
-args = ["--yes", "github:Tsutomu-miku/cdp-browser-mcp", "mcp", "--agent", "codex"]
+command = "cdp-browser-mcp"
+args = ["mcp", "--agent", "codex"]
 ```
 
 After a browser restart, refs and leases from previous tabs are invalid. Use `browser_tabs` to list or create tabs before continuing.

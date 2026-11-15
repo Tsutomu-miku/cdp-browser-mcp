@@ -52,7 +52,8 @@
     "test:quality": "node --test test/policy-rules.test.mjs test/dependency-policy.test.mjs test/gate-config.test.mjs",
     "evals": "node tools/run-evals.mjs",
     "hooks:install": "node tools/install-hooks.mjs",
-    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run evals && npm run format:check"
+    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run test:install && npm run evals && npm run format:check",
+    "test:install": "node --test test/install.test.mjs"
   },
   "author": {
     "name": "Tsutomu"
