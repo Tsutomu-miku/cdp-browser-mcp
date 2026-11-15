@@ -1,7 +1,7 @@
 # ADR 0001：不做自研浏览器扩展，日常 Chrome 统一走官方 chrome-devtools-mcp --autoConnect
 
 - 日期：2026-11-15
-- 状态：决策已确定；本 ADR 文档只提 PR，等待 review 后再合并。
+- 状态：已接受（Accepted，2026-11-15，随 PR #5 合入 main）。
 
 ## 背景
 
