@@ -1,38 +1,22 @@
-import { randomUUID, createHash } from "node:crypto";
 import { join } from "node:path";
-import {
-  configSchema,
-  idSchema,
-  normalizeHeaders,
-  type Config,
-} from "./config.js";
+import { configSchema, type Config } from "./config.js";
 import { ChromeProcess, guardDisk, type Log } from "./runtime.js";
-import { CdpConnection, CdpClosedError, type CdpSession } from "./cdp.js";
+import { CdpConnection } from "./cdp.js";
 import { Downloads } from "./downloads.js";
 import { TabPolicy } from "./headers.js";
 import { Devtools, diagnosticNames } from "./devtools.js";
-export interface Tab {
-  tabId: string;
-  agentId: string;
-  lane: string;
-  headers: Record<string, string>;
-  targetId: string;
-  pageId: number;
-  session: CdpSession;
-  url: string;
-  expiresAt: number;
-  busy: boolean;
-}
-export const fingerprint = (h: Record<string, string>) =>
-  createHash("sha256").update(JSON.stringify(h)).digest("hex").slice(0, 16);
+import { OwnedTabs, type Tab } from "./session/owned-tabs.js";
+import { CookieSnapshot } from "./adapters/chrome/cookie-snapshot.js";
+export { fingerprint, type Tab } from "./session/owned-tabs.js";
 export class Steward {
-  readonly tabs = new Map<string, Tab>();
+  readonly tabs: Map<string, Tab>;
+  private readonly leases: OwnedTabs;
   readonly chrome: ChromeProcess;
   browser?: CdpConnection;
   downloads?: Downloads;
   policy?: TabPolicy;
   devtools?: Devtools;
-  private cookies: Record<string, unknown>[] = [];
+  private readonly cookies: CookieSnapshot;
   private anchor?: string;
   private timer?: NodeJS.Timeout;
   private recovering?: Promise<void>;
@@ -40,15 +24,23 @@ export class Steward {
   private ready = false;
   private diskError?: string;
   private sweeping = false;
-  private openings = 0;
-  private traceOwner?: string;
-  private traceBusy = false;
   constructor(
     readonly config: Config,
     readonly log: Log,
   ) {
     configSchema.parse(config);
     this.chrome = new ChromeProcess(config, log);
+    this.cookies = new CookieSnapshot(log);
+    this.leases = new OwnedTabs(
+      this,
+      () => this.requireReady(),
+      () => guardDisk(config),
+      async () => {
+        if (this.ready) await this.rememberCookies();
+      },
+      diagnosticNames,
+    );
+    this.tabs = this.leases.tabs;
   }
   private fatal = (e: unknown) => {
     this.log("connection.failed", { error: String(e) });
@@ -122,8 +114,7 @@ export class Steward {
       const tab = [...this.tabs.values()].find((t) => t.targetId === targetId);
       if (tab) void this.release(tab.tabId, false).catch(this.fatal);
     });
-    if (this.cookies.length)
-      await browser.send("Storage.setCookies", { cookies: this.cookies });
+    await this.cookies.restore(browser);
     await this.rememberCookies();
     this.downloads = new Downloads(
       browser,
@@ -165,205 +156,34 @@ export class Steward {
       );
     if (this.diskError) throw Error(this.diskError);
   }
-  async open(
-    agentId: string,
-    lane: string,
-    extra: Record<string, string> = {},
-  ) {
-    this.requireReady();
-    idSchema.parse(agentId);
-    if (!Object.hasOwn(this.config.lanes, lane))
-      throw Error(`Unknown lane: ${lane}`);
-    if (this.tabs.size + this.openings >= this.config.maxTabs)
-      throw Error("Tab capacity reached");
-    const headers = normalizeHeaders({ ...this.config.lanes[lane], ...extra });
-    if (Object.keys(headers).length && !this.config.headerDomains.length)
-      throw Error(
-        "Lane headers require an explicit headerDomains allowlist (or --header-domains)",
-      );
-    this.openings++;
-    try {
-      await guardDisk(this.config);
-      const tabId = randomUUID(),
-        url = `about:blank#${tabId}`;
-      const { targetId } = await this.browser!.send("Target.createTarget", {
-        url,
-      });
-      try {
-        const session = await this.browser!.attach(targetId);
-        const tab: Tab = {
-          tabId,
-          agentId,
-          lane,
-          headers,
-          targetId,
-          session,
-          url,
-          pageId: 0,
-          expiresAt: Date.now() + this.config.leaseMs,
-          busy: false,
-        };
-        await this.policy!.watch(session, "page", tab, url);
-        tab.pageId = await this.devtools!.pageId(url);
-        this.tabs.set(tabId, tab);
-        this.log("tab.opened", {
-          agentId,
-          tabId,
-          pageId: tab.pageId,
-          lane,
-          headerHash: fingerprint(headers),
-        });
-        return this.describe(tab);
-      } catch (e) {
-        await this.browser!.send("Target.closeTarget", { targetId });
-        throw e;
-      }
-    } finally {
-      this.openings--;
-    }
-  }
-  private describe(t: Tab) {
-    return {
-      tabId: t.tabId,
-      pageId: t.pageId,
-      agentId: t.agentId,
-      lane: t.lane,
-      headerHash: fingerprint(t.headers),
-      expiresAt: t.expiresAt,
-      url: t.url,
-      busy: t.busy,
-    };
+  open(agentId: string, lane: string, extra: Record<string, string> = {}) {
+    return this.leases.open(agentId, lane, extra);
   }
   list(agentId?: string) {
-    return [...this.tabs.values()]
-      .filter((t) => !agentId || t.agentId === agentId)
-      .map((t) => this.describe(t));
+    return this.leases.list(agentId);
   }
-  private owned(agentId: string, tabId: string) {
-    const t = this.tabs.get(tabId);
-    if (!t || t.agentId !== agentId)
-      throw Error("Tab is absent or belongs to another agent");
-    return t;
+  release(tabId: string, close = true) {
+    return this.leases.release(tabId, close);
   }
-  async release(tabId: string, close = true) {
-    const t = this.tabs.get(tabId);
-    if (!t) return;
-    this.tabs.delete(tabId);
-    await this.downloads!.forget(tabId);
-    if (close)
-      await this.browser!.send("Target.closeTarget", { targetId: t.targetId });
-    this.log("tab.released", { agentId: t.agentId, tabId, lane: t.lane });
-  }
-  async closeTab(agentId: string, tabId: string) {
-    this.owned(agentId, tabId);
-    await this.release(tabId);
-    return { closed: tabId };
+  closeTab(agentId: string, tabId: string) {
+    return this.leases.closeTab(agentId, tabId);
   }
   renew(agentId: string, tabId: string) {
-    const t = this.owned(agentId, tabId);
-    t.expiresAt = Date.now() + this.config.leaseMs;
-    return this.describe(t);
+    return this.leases.renew(agentId, tabId);
   }
-  async closeAgent(agentId: string) {
-    for (const t of [...this.tabs.values()])
-      if (t.agentId === agentId) await this.release(t.tabId);
+  closeAgent(agentId: string) {
+    return this.leases.closeAgent(agentId);
   }
-  async action(
+  action(
     agentId: string,
     tabId: string,
     method: string,
     args: Record<string, unknown> = {},
   ) {
-    this.requireReady();
-    const t = this.owned(agentId, tabId);
-    if (t.busy) throw Error("This tab already has an operation in progress");
-    t.busy = true;
-    t.expiresAt = Date.now() + this.config.leaseMs;
-    try {
-      if (method === "devtools") {
-        const name = String(args.name);
-        if (!diagnosticNames.includes(name))
-          throw Error("Only owned-page diagnostics are exposed");
-        const params = args.arguments as Record<string, unknown>;
-        if (Object.hasOwn(params, "pageId"))
-          throw Error("pageId is assigned by tab ownership");
-        if (
-          name === "performance_analyze_insight" &&
-          (this.traceOwner !== t.tabId || this.traceBusy)
-        )
-          throw Error(
-            "The latest completed trace belongs to another tab or is still recording",
-          );
-        const records = [
-          "performance_start_trace",
-          "lighthouse_audit",
-        ].includes(name);
-        if (name === "performance_start_trace" && params.autoStop === false)
-          throw Error("Shared-browser traces require autoStop=true");
-        if (records && this.traceBusy)
-          throw Error("A browser-wide diagnostic is already recording");
-        if (records) {
-          this.traceBusy = true;
-          this.traceOwner = undefined;
-        }
-        try {
-          const result = await this.devtools!.call(
-            name,
-            { ...params, pageId: t.pageId },
-            80000,
-          );
-          if (name === "performance_start_trace") this.traceOwner = t.tabId;
-          return result;
-        } finally {
-          if (records) this.traceBusy = false;
-        }
-      }
-      return await this.devtools!.action(t.pageId, method, args);
-    } finally {
-      t.busy = false;
-      t.expiresAt = Date.now() + this.config.leaseMs;
-      if (this.ready) await this.rememberCookies();
-    }
+    return this.leases.action(agentId, tabId, method, args);
   }
   private async rememberCookies() {
-    try {
-      const { cookies } = await this.browser!.send("Storage.getCookies");
-      // Storage.setCookies accepts CookieParam, not response-only Cookie metadata.
-      this.cookies = cookies.map(
-        ({
-          name,
-          value,
-          domain,
-          path,
-          expires,
-          httpOnly,
-          secure,
-          sameSite,
-          priority,
-          sameParty,
-          sourceScheme,
-          sourcePort,
-          partitionKey,
-        }: any) => ({
-          name,
-          value,
-          domain,
-          path,
-          ...(expires > 0 ? { expires } : {}),
-          httpOnly,
-          secure,
-          sameSite,
-          priority,
-          sameParty,
-          sourceScheme,
-          sourcePort,
-          partitionKey,
-        }),
-      );
-    } catch (e) {
-      if (!(e instanceof CdpClosedError)) throw e;
-      this.log("cookies.snapshot-unavailable");
-    }
+    await this.cookies.remember(this.browser!);
   }
   health() {
     return {
@@ -387,9 +207,7 @@ export class Steward {
       const completed = this.downloads?.completed.slice() || [];
       await this.devtools?.stop();
       await this.chrome.stop();
-      this.tabs.clear();
-      this.traceOwner = undefined;
-      this.traceBusy = false;
+      this.leases.reset();
       await this.browser?.close();
       await this.policy?.close();
       await this.downloads?.abandon();
@@ -409,15 +227,14 @@ export class Steward {
     }
     await this.browser!.send("Browser.getVersion");
     await this.rememberCookies();
-    for (const t of [...this.tabs.values()])
-      if (!t.busy && t.expiresAt < Date.now()) await this.release(t.tabId);
+    await this.leases.expire();
     const { targetInfos } = await this.browser!.send("Target.getTargets");
     for (const p of targetInfos)
       if (
         p.type === "page" &&
         p.targetId !== this.anchor &&
         ![...this.tabs.values()].some((t) => t.targetId === p.targetId) &&
-        !this.openings
+        !this.leases.openings
       )
         await this.browser!.send("Target.closeTarget", {
           targetId: p.targetId,

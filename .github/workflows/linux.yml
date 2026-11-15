@@ -3,14 +3,6 @@ name: Browser Stable
 on:
   push:
     branches: [main]
-    paths:
-      [
-        "src/**",
-        "test/**",
-        "package*.json",
-        "tsconfig.json",
-        ".github/workflows/linux.yml",
-      ]
   pull_request:
   workflow_dispatch:
 
@@ -49,7 +41,7 @@ jobs:
         run: |
           import subprocess
           subprocess.run(["npm", "ci"], check=True)
-          subprocess.run(["npm", "run", "format:check"], check=True)
+          subprocess.run(["npm", "run", "check"], check=True)
           subprocess.run(["npm", "test"], check=True)
       - uses: actions/upload-artifact@v4
         if: always()
@@ -105,7 +97,7 @@ jobs:
         run: |
           import subprocess
           subprocess.run(["npm", "ci"], check=True)
-          subprocess.run(["npm", "run", "format:check"], check=True)
+          subprocess.run(["npm", "run", "check"], check=True)
           subprocess.run(["npm", "test"], check=True)
       - uses: actions/upload-artifact@v4
         if: always()
