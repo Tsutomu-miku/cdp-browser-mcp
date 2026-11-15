@@ -1,69 +1,69 @@
 # Architecture
 
-Each MCP client owns a set of tabs in one persistent Chrome browser. Playwright connects over CDP to the browser's default context, so clients share cookies and same-origin storage.
+`0.2.0-dev` is an MIT orchestration layer over the unmodified, Apache-2.0 [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) executable. Its license and attribution ship in [NOTICE](../NOTICE) and [third_party](../third_party/chrome-devtools-mcp-LICENSE). Playwright is used only by tests and the historical probe.
 
 ```mermaid
 flowchart LR
-  A[Agent A · MCP stdio] --> S[Local browser service]
-  B[Agent B · MCP stdio] --> S
-  CLI[Management CLI] --> S
-  S -->|Playwright connectOverCDP| C[Dedicated Chrome profile]
-  C --> T1[Agent A tabs · blue headers]
-  C --> T2[Agent B tabs · green headers]
-  C --> D[Context GUID download staging]
-  D --> F[Agent / tab download directories]
+  Agents[Agent MCP / CLI / Skill] --> Broker[Local authenticated broker]
+  Broker --> Leases[Agent / tab / pageId leases]
+  Leases --> Official[Controlled official MCP subprocess]
+  Official -->|browserUrl loopback| Chrome[Owned Chrome / persistent profile]
+  Leases --> CDP[Independent flat CDP WebSocket]
+  CDP --> Policy[Network + Fetch / target policy]
+  Policy --> Chrome
+  CDP --> Downloads[Default-context GUID downloads]
+  Downloads --> Files[Agent / tab directories]
 ```
 
-## Service lifecycle
+## Browser support
 
-`mcp`, `open`, and `launch` start the service if needed. A broker lock elects one startup owner; simultaneous clients wait for that service to become ready. Startup configuration is sent over Node IPC, rather than exposed in process arguments. Each data directory supports one service.
+Google Chrome current Stable or newer is required on every platform, including Linux headless=new, matching the [official requirements](https://github.com/ChromeDevTools/chrome-devtools-mcp#requirements). Official Lighthouse uses recent CDP commands such as `Network.emulateNetworkConditionsByRule`; passing core navigation/download tests on Chrome 136/146 does not establish support for the diagnostic toolset. Linux CI follows Google's Stable channel and records the actual installed version. No older-browser path, skipped diagnostic or alternative protocol implementation is maintained.
 
-The service keeps a blank anchor tab open so the browser window and download lifecycle remain available when all agent tabs close. Do not use or close the anchor as an agent tab. Closing it triggers browser recovery.
+## Ownership and lifecycle
 
-Tab ownership, leases, and per-tab request policy live in `src/steward.ts`; Chrome process and disk management in `src/runtime.ts`; downloads in `src/downloads.ts`; local authentication in `src/broker.ts`; startup coordination in `src/supervisor.ts`. CLI and MCP entry points call those owners.
+`runtime.ts` owns Chrome processes, dedicated marked profiles, loopback endpoints and disk checks. `steward.ts` owns leases, readiness and recovery. `devtools.ts` owns the installed upstream subprocess and the compatibility adapter. `cdp.ts` owns one independent browser WebSocket with flat `sessionId` command envelopes. `headers.ts` owns target policy and recursively attached child sessions; `downloads.ts` owns frame attribution and filesystem distribution. `broker.ts`, `cli.ts` and `mcp.ts` are authenticated entry points.
 
-On a CDP disconnect, actions fail until the service restarts its own Chrome process and reinstalls request policies. Existing tab leases are released. The profile remains, and the in-memory cookie snapshot restores session cookies. Cookie changes since the last successful action/health scan can be lost; the in-memory snapshot does not survive a service restart.
+The supervisor starts Chrome with its own marked `stateDir/profile`, `--remote-debugging-address=127.0.0.1`, and a random port unless explicitly configured. A blank anchor keeps Chrome alive. It starts the pinned dependency's executable via the MCP SDK's controlled stdio transport, passing `--browserUrl`, `--pageIdRouting`, `--experimentalStructuredContent`, `--no-usage-statistics`, `--no-performance-crux`, and a workspace restricted to `stateDir`. It never invokes an unpinned runtime download or lets upstream launch another Chrome.
 
-A later launch can recover a killed service's orphan browser only after verifying the dedicated profile and Chrome command line. It never kills an arbitrary Chrome PID or attaches to a daily browser profile.
+Opening a tab creates a blank target with a unique marker, attaches policy before any managed HTTP navigation, and obtains its official `pageId` from structured `list_pages`. UUID tab ownership, pageId, target and flat session belong to one lease. Every operation validates its agent before passing pageId to upstream. There is no global selected-page workflow. Existing tool names and `[ref=...]` snapshot syntax remain; refs contain upstream UIDs. CSS compatibility resolves accessible top-level elements through upstream snapshot/evaluation, then uses upstream click/fill. Popups and unowned pages are reclaimed; they do not acquire a lane.
 
-## Header isolation
+Normal shutdown calls `Browser.close` and waits for process exit so persistent cookies reach disk. Killing Chrome immediately with a signal can lose recently written cookies even while localStorage survives. An unresponsive shutdown has a bounded process kill; it is logged. A later startup may close an orphan only after verifying the marked profile and command line.
 
-A page's extra HTTP headers cover its page and child targets. Context request routing then merges the owning tab's headers, overriding conflicting page-supplied values. Routing is installed before managed navigation, disables HTTP caching, and rejects requests without a managed page owner. Popups and unmanaged tabs are closed; create tabs with `browser_tabs` instead.
+CDP or official-process loss marks the service unavailable, stops the owned browser/subprocess, invalidates all leases, and reconnects both clients to the same persistent profile. An in-memory snapshot restores session cookies during recovery. Cookie changes since the last successful action/health scan may be lost; this snapshot does not survive a service restart. Persistent cookies and browser storage use Chrome's disk profile. No failed operation is replayed.
 
-Validated request types: documents, stylesheets, scripts, images, fetch, XHR, beacon, navigation, same-origin and cross-origin iframes, dedicated and nested workers, and downloads. WebSocket handshakes, WebTransport, browser system traffic, and extension networking are outside this guarantee.
+## Domain-filtered headers
 
-## Worker policy
+The official `emulate.extraHttpHeaders` option is not exposed or used. It has page-wide semantics and cannot express an allowlist.
 
-SharedWorker and ServiceWorker have origin-wide lifetimes. They cannot unconditionally be assigned the headers of one tab when multiple tabs use different headers.
+The independent outer connection enables Network and request-stage Fetch interception on each page/iframe session. Recursive `Target.setAutoAttach` pauses child iframe/dedicated-worker targets until their policy is installed. Each request removes the configured lane keys, then injects the owning tab's headers only if the destination hostname matches `headerDomains`. This repeats on redirects. Exact hostname entries and explicit `*.example.com` suffix entries have separate semantics; an empty list permits no headers.
 
-The implementation therefore uses an explicit blocking policy:
+Dedicated worker targets implement Network but not Fetch. Their fetch/XHR/import requests pass through the owning ancestor's Fetch interception. Network headers on a worker supply same-origin nested-worker startup scripts, which are not independently paused by page Fetch; these defaults are set only when the worker's own origin is allowlisted. Ancestor Fetch strips the lane keys on external requests. Tests include same-origin and external-frame nested workers, module imports, importScripts, script redirects and worker redirects. No browser-version/platform branch or alternate interception implementation is selected.
 
-1. Launch Chrome with `--disable-shared-workers`.
-2. Abort any request owned by a ServiceWorker, any worker registration/update script identified by `Service-Worker: script`, and requests whose `Sec-Fetch-Dest` is `serviceworker` or `sharedworker`.
-3. Reject startup if an existing web ServiceWorker is detected. Built-in extension workers are outside site origin handling; extensions are disabled at launch.
-4. Restart owned Chrome after a CDP disconnect, instead of continuing existing tabs without interception.
+The official server and outer sessions are independent CDP clients on the same Chrome. Upstream observes requests and performs actions; only the outer layer mutates request headers. WebSocket, WebTransport, browser-system and extension traffic are outside this HTTP(S) guarantee. This is coordination between trusted agents, not a network firewall.
 
-There is no switch to preserve shared/background workers. Supporting sites that need them would require a separate origin-wide single-preset scheduler and full lifecycle validation. In-flight requests during a lost CDP connection cannot be undone; this is not a network firewall.
+## Origin-wide worker policy
 
-## Downloads and disk usage
+SharedWorker is disabled by `--disable-shared-workers`. ServiceWorker registration is rejected by a non-writable registration policy installed before page/iframe document scripts and before dedicated workers resume. Existing web ServiceWorkers reject startup; an unexpected origin-wide worker target invalidates the connection. Request interception additionally rejects registration scripts that enter the owned page pipeline.
 
-Downloads are staged using a local UUID for each default-context connection and Chrome's download GUID:
+ServiceWorker startup script fetching can precede the target's debugger pause. Merely attaching Fetch to a new ServiceWorker is too late: it can allow the initial script and background fetch through. Registration must be prevented at the page entry point. Synthetic tests assert registration rejection and zero `/sw`, `/shared`, or background requests at the server. Sites requiring offline caches, push or shared background workers are not supported. Pages that deliberately circumvent policy are outside the cooperating-agent trust model.
+
+## Downloads and diagnostics
+
+Browser-level `Browser.setDownloadBehavior` uses `allowAndName`, `eventsEnabled`, and a staging directory. Both it and `Browser.cancelDownload` omit `browserContextId`, selecting the persistent default context on every supported platform. A page target context ID is never supplied. This preserves the v0.1.1 Linux fix.
 
 ```text
-stateDir/downloads/staging/<context-guid>/<download-guid>
+stateDir/downloads/staging/<local-connection-uuid>/<download-guid>
 stateDir/downloads/agents/<agent-id>/<tab-id>/<download-guid>-<safe-name>
 ```
 
-The download event's frame ID maps to its page and agent. Completed files are moved only after validating their staging path. Unknown frame downloads are canceled. Duplicate completion events are idempotent; cross-origin frame swaps retain ownership. Closing a tab cancels unfinished downloads. Completed files persist; the MCP list contains completions from the current service lifetime.
+Page/iframe frame IDs map each GUID to a lease. Finished files move only after validating Chrome's GUID staging path; unknown downloads are canceled. Closing a tab removes frame ownership, closes child sessions with the target and cancels unfinished downloads. Completed files persist; lists contain current-service completions. Disk limits reject new work and cancel active downloads; they never remove login data or finished downloads.
 
-The service uses a browser-level CDP session and the persistent default context. Both `Browser.setDownloadBehavior` and `Browser.cancelDownload` omit `browserContextId`: [CDP specifies that omission selects the default context](https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-setDownloadBehavior). A page target's reported context ID is not used as a download-command context ID. The local staging UUID is only a filesystem namespace; download isolation comes from GUID naming and frame/page/agent attribution.
+`browser_devtools` and CLI `devtools` expose a fixed set of official screenshot, network, console, CSS, Lighthouse and trace diagnostics, always injecting an owned pageId. Lifecycle tools, emulation header mutation and arbitrary upstream forwarding stay private. Network/console collectors remain page-scoped. Trace/Lighthouse recording is serialized browser-wide and uses bounded automatic stop. Insight lookup checks the latest trace owner because upstream retains its latest trace globally. Raw traces can contain events from the whole browser; they are not a tenant-isolated artifact.
 
-Free space and download size are checked at startup, before opening tabs, and periodically. The soft limit rejects new work and cancels active downloads until space is available. It never deletes completed downloads or login data. Use filesystem quotas for a hard storage limit.
+## Daily-browser extension backend
+
+The [separate extension draft PR #1](https://github.com/Tsutomu-miku/cdp-browser-mcp/pull/1) uses a manually installed MV3 extension/native host to operate explicitly selected daily-browser tabs. It neither launches Chrome nor exposes CDP, and targets single-lane login reuse. Its DNR permissions, tabId=-1 background-worker limits and user-selected profile boundary belong to that PR. This CDP migration does not import, merge, install or modify the extension implementation. There is no extension configuration switch in this branch.
 
 ## Trust boundary
 
-The control plane uses a permission-protected Unix socket and scoped agent tokens. CDP binds to `127.0.0.1`. A process that can read the administrator token or connect directly to CDP has browser-wide access. Use this tool between trusted agents under a dedicated OS user, not as tenant isolation.
-
-Cookies, localStorage, IndexedDB, and other same-origin state are shared. Custom headers do not isolate application data stored there. Logs contain tab IDs, agents, header fingerprints, and request matches, but omit cookie/header values and URL query/hash. URL paths may still be sensitive.
-
-Protocol references: [Playwright CDP](https://playwright.dev/docs/api/class-browsertype#browser-type-connect-over-cdp), [ServiceWorker routing](https://playwright.dev/docs/service-workers), [Chrome download events](https://chromedevtools.github.io/devtools-protocol/tot/Browser/).
+The control plane uses a permission-protected Unix socket and scoped agent tokens. State directories use 0700 and socket/admin files use 0600. CDP binds to loopback. OS users/processes with direct CDP or administrator-token access have browser-wide power. Cookies, localStorage and IndexedDB are shared intentionally; logging out affects all agents. Logs omit cookie/header values and query/hash, but paths may still be sensitive.

@@ -1,4 +1,5 @@
 {
+  "headerDomains": ["example.com", "*.example.com"],
   "lanes": {
     "default": {},
     "blue": {

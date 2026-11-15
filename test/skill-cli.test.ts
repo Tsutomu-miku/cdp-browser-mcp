@@ -51,6 +51,8 @@ test(
           cli(
             "open",
             ...scope(id),
+            "--header-domains",
+            '["127.0.0.1","localhost"]',
             "--headers",
             JSON.stringify({ "x-lane": id }),
             mode === "headed" ? "--headed" : "--headless",

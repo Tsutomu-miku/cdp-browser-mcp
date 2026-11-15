@@ -42,7 +42,14 @@ const openSchema = z.object({
 });
 const actionSchema = z.object({
   tabId: z.string().uuid(),
-  action: z.enum(["navigate", "click", "type", "snapshot", "extract"]),
+  action: z.enum([
+    "navigate",
+    "click",
+    "type",
+    "snapshot",
+    "extract",
+    "devtools",
+  ]),
   args: z.record(z.string(), z.unknown()).default({}),
 });
 const same = (a: string, b: string) =>

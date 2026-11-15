@@ -13,7 +13,7 @@ import {
 import { appendFileSync, existsSync, renameSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { chromium } from "playwright";
+import { CdpConnection, CdpClosedError } from "./cdp.js";
 import type { Config } from "./config.js";
 export type Log = (event: string, data?: Record<string, unknown>) => void;
 export function logger(config: Config): Log {
@@ -101,12 +101,9 @@ export class ChromeProcess {
         return;
       throw e;
     }
-    const browser = await chromium.connectOverCDP(endpoint, {
-      noDefaults: true,
-      timeout: 3000,
-    });
+    const browser = await CdpConnection.connect(endpoint);
     try {
-      const session = await browser.newBrowserCDPSession();
+      const session = browser;
       const command = await session.send("Browser.getBrowserCommandLine");
       if (
         !command.arguments.includes(`--user-data-dir=${profile}`) ||
@@ -118,7 +115,7 @@ export class ChromeProcess {
       try {
         await session.send("Browser.close");
       } catch (e) {
-        if (browser.isConnected()) throw e;
+        if (!(e instanceof CdpClosedError)) throw e;
       }
       this.log("chrome.orphan-closed");
     } finally {
@@ -270,6 +267,7 @@ export class ChromeProcess {
   }
   async stop() {
     const child = this.child;
+    const endpoint = this.endpoint;
     this.child = undefined;
     this.endpoint = undefined;
     if (!child?.pid) return;
@@ -280,14 +278,27 @@ export class ChromeProcess {
         if ((e as NodeJS.ErrnoException).code !== "ESRCH") throw e;
       }
     };
-    kill("SIGTERM");
+    if (endpoint && child.exitCode === null && child.signalCode === null) {
+      const cdp = await CdpConnection.connect(endpoint);
+      try {
+        await cdp.send("Browser.close");
+      } catch (e) {
+        if (!(e instanceof CdpClosedError)) throw e;
+      } finally {
+        await cdp.close();
+      }
+    }
     for (
       let i = 0;
       i < 50 && child.exitCode === null && child.signalCode === null;
       i++
     )
       await delay(100);
-    if (child.exitCode === null && child.signalCode === null) kill("SIGKILL");
+    if (child.exitCode === null && child.signalCode === null) {
+      this.log("chrome.shutdown-timeout", { pid: child.pid });
+      kill("SIGKILL");
+      await new Promise<void>((resolve) => child.once("exit", () => resolve()));
+    }
     await rm(join(this.config.stateDir, "chrome-endpoint.json"), {
       force: true,
     });

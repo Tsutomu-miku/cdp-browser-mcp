@@ -1,6 +1,6 @@
 # Development
 
-Requires Node.js 22+, npm, and an installed Chrome/Chromium browser.
+Requires Node.js 22.12+, npm, and Google Chrome current Stable or newer, matching the official chrome-devtools-mcp requirements. This also applies to Linux headless=new; older Chrome/other Chromium browsers are not part of the supported baseline.
 
 ```sh
 git clone https://github.com/Tsutomu-miku/cdp-browser-mcp.git
@@ -14,7 +14,7 @@ To install the local checkout as a command:
 
 ```sh
 npm pack
-npm install --global ./cdp-browser-mcp-0.1.1.tgz
+npm install --global ./cdp-browser-mcp-0.2.0-dev.tgz
 cdp-browser-mcp --help
 ```
 

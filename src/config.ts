@@ -25,6 +25,21 @@ export const headerSchema = z
       ),
     "Identity and hop-by-hop headers are not lane headers",
   );
+export const headerDomainsSchema = z.array(
+  z
+    .string()
+    .toLowerCase()
+    .refine((value) => {
+      const host = value.startsWith("*.") ? value.slice(2) : value;
+      return (
+        /^[a-z0-9.-]+$/.test(host) &&
+        !host.startsWith(".") &&
+        !host.endsWith(".") &&
+        !host.includes("..") &&
+        new URL("https://" + host).hostname === host
+      );
+    }, "Use exact hostnames or *.example.com, without a scheme, path or port"),
+);
 export const configSchema = z
   .object({
     stateDir: z
@@ -34,6 +49,7 @@ export const configSchema = z
         "stateDir socket path exceeds 100 bytes",
       )
       .default(join(homedir(), ".local/state/cdp-browser-mcp")),
+    headerDomains: headerDomainsSchema.default([]),
     executablePath: z.string().optional(),
     cdpPort: z.number().int().min(0).max(65535).default(0),
     headless: z.boolean().default(process.platform === "linux"),

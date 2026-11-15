@@ -1,0 +1,11 @@
+{
+  "node": "v22.17.0",
+  "version": "0.2.0-dev",
+  "productionDependenciesOnly": true,
+  "playwrightAbsent": true,
+  "noticesIncluded": true,
+  "ownedTab": true,
+  "snapshot": true,
+  "officialScreenshotViaCLI": true,
+  "cleanup": true
+}

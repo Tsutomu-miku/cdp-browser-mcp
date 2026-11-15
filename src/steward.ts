@@ -1,12 +1,3 @@
-import {
-  chromium,
-  type Browser,
-  type BrowserContext,
-  type Page,
-  type Route,
-  type Locator,
-  type Cookie,
-} from "playwright";
 import { randomUUID, createHash } from "node:crypto";
 import { join } from "node:path";
 import {
@@ -16,13 +7,19 @@ import {
   type Config,
 } from "./config.js";
 import { ChromeProcess, guardDisk, type Log } from "./runtime.js";
+import { CdpConnection, CdpClosedError, type CdpSession } from "./cdp.js";
 import { Downloads } from "./downloads.js";
+import { TabPolicy } from "./headers.js";
+import { Devtools, diagnosticNames } from "./devtools.js";
 export interface Tab {
   tabId: string;
   agentId: string;
   lane: string;
   headers: Record<string, string>;
-  page: Page;
+  targetId: string;
+  pageId: number;
+  session: CdpSession;
+  url: string;
   expiresAt: number;
   busy: boolean;
 }
@@ -31,11 +28,12 @@ export const fingerprint = (h: Record<string, string>) =>
 export class Steward {
   readonly tabs = new Map<string, Tab>();
   readonly chrome: ChromeProcess;
-  browser?: Browser;
-  context?: BrowserContext;
+  browser?: CdpConnection;
   downloads?: Downloads;
-  private cookies: Cookie[] = [];
-  private anchor?: Page;
+  policy?: TabPolicy;
+  devtools?: Devtools;
+  private cookies: Record<string, unknown>[] = [];
+  private anchor?: string;
   private timer?: NodeJS.Timeout;
   private recovering?: Promise<void>;
   private stopping = false;
@@ -43,6 +41,8 @@ export class Steward {
   private diskError?: string;
   private sweeping = false;
   private openings = 0;
+  private traceOwner?: string;
+  private traceBusy = false;
   constructor(
     readonly config: Config,
     readonly log: Log,
@@ -50,8 +50,21 @@ export class Steward {
     configSchema.parse(config);
     this.chrome = new ChromeProcess(config, log);
   }
+  private fatal = (e: unknown) => {
+    this.log("connection.failed", { error: String(e) });
+    this.ready = false;
+    if (!this.stopping)
+      void this.recover().catch((error) =>
+        this.log("reconnect.failed", { error: String(error) }),
+      );
+  };
   async start() {
-    await this.connect();
+    try {
+      await this.connect();
+    } catch (e) {
+      await this.stop();
+      throw e;
+    }
     this.timer = setInterval(() => {
       if (!this.sweeping) {
         this.sweeping = true;
@@ -65,12 +78,11 @@ export class Steward {
   }
   private async connect() {
     const endpoint = await this.chrome.start();
-    this.browser = await chromium.connectOverCDP(endpoint, {
-      noDefaults: true,
-      timeout: 15000,
+    const browser = (this.browser = await CdpConnection.connect(endpoint));
+    browser.once("disconnected", () => {
+      if (!this.stopping) this.fatal(Error("Orchestrator CDP disconnected"));
     });
-    const cdp = await this.browser.newBrowserCDPSession();
-    const command = await cdp.send("Browser.getBrowserCommandLine");
+    const command = await browser.send("Browser.getBrowserCommandLine");
     if (
       !command.arguments.includes(
         `--user-data-dir=${join(this.config.stateDir, "profile")}`,
@@ -78,121 +90,78 @@ export class Steward {
       !command.arguments.includes("--disable-shared-workers")
     )
       throw Error("CDP target is not the dedicated steward Chrome");
-    this.context = this.browser.contexts()[0];
-    if (!this.context) throw Error("CDP default context missing");
-    this.context.setDefaultTimeout(this.config.actionTimeoutMs);
-    this.context.setDefaultNavigationTimeout(this.config.actionTimeoutMs);
+    await browser.send("Target.setDiscoverTargets", { discover: true });
+    const { targetInfos } = await browser.send("Target.getTargets");
     if (
-      this.context
-        .serviceWorkers()
-        .some((w) => new URL(w.url()).protocol !== "chrome-extension:")
+      targetInfos.some(
+        (t: any) =>
+          t.type === "service_worker" && !t.url.startsWith("chrome-extension:"),
+      )
     )
       throw Error(
-        "Existing web service workers are forbidden; import cookies into a clean steward profile",
+        "Existing web service workers are forbidden; use a clean steward profile",
       );
-    await this.context.route("**/*", (route) => this.route(route));
-    if (this.cookies.length) await this.context.addCookies(this.cookies);
-    await this.rememberCookies();
-    this.anchor =
-      this.context.pages().find((p) => p.url() === "about:blank") ||
-      (await this.context.newPage());
-    for (const page of this.context.pages())
-      if (page !== this.anchor) await page.close();
-    this.anchor.once("close", () => {
-      if (this.ready && !this.stopping)
-        void this.recover().catch((e) =>
-          this.log("reconnect.failed", { error: String(e) }),
-        );
+    const pages = targetInfos.filter((t: any) => t.type === "page");
+    this.anchor = pages.find((t: any) => t.url === "about:blank")?.targetId;
+    if (!this.anchor)
+      this.anchor = (
+        await browser.send("Target.createTarget", { url: "about:blank" })
+      ).targetId;
+    for (const page of pages)
+      if (page.targetId !== this.anchor)
+        await browser.send("Target.closeTarget", { targetId: page.targetId });
+    browser.on("Target.targetInfoChanged", ({ targetInfo }) => {
+      const tab = [...this.tabs.values()].find(
+        (t) => t.targetId === targetInfo.targetId,
+      );
+      if (tab) tab.url = targetInfo.url;
     });
+    browser.on("Target.targetDestroyed", ({ targetId }) => {
+      if (targetId === this.anchor && this.ready && !this.stopping)
+        this.fatal(Error("Anchor closed"));
+      const tab = [...this.tabs.values()].find((t) => t.targetId === targetId);
+      if (tab) void this.release(tab.tabId, false).catch(this.fatal);
+    });
+    if (this.cookies.length)
+      await browser.send("Storage.setCookies", { cookies: this.cookies });
+    await this.rememberCookies();
     this.downloads = new Downloads(
-      cdp,
+      browser,
       join(this.config.stateDir, "downloads"),
       this.log,
-      (e) => {
-        this.log("download.error", { error: String(e) });
-        void this.recover().catch((e) =>
-          this.log("reconnect.failed", { error: String(e) }),
-        );
-      },
+      this.fatal,
     );
     await this.downloads.start();
-    this.browser.on("disconnected", () => {
-      this.ready = false;
-      if (!this.stopping)
-        void this.recover().catch((e) =>
-          this.log("reconnect.failed", { error: String(e) }),
+    this.policy = new TabPolicy(
+      browser,
+      this.config,
+      this.downloads,
+      this.log,
+      this.fatal,
+      () => !!this.diskError || !this.ready,
+    );
+    browser.on("Target.targetCreated", ({ targetInfo }) => {
+      if (["service_worker", "shared_worker"].includes(targetInfo.type))
+        this.fatal(
+          Error("Origin-wide worker violates the dedicated-profile policy"),
         );
     });
+    this.devtools = new Devtools(
+      this.log,
+      () => this.fatal(Error("Official MCP server disconnected")),
+      this.config.actionTimeoutMs,
+    );
+    await this.devtools.start(endpoint, this.config.stateDir);
     this.ready = true;
     this.log("steward.ready", {
-      version: this.browser.version(),
+      version: (await browser.send("Browser.getVersion")).product,
       workerPolicy: "block-shared-and-service",
     });
   }
-  private async route(route: Route) {
-    const q = route.request();
-    try {
-      const h = await q.allHeaders();
-      if (
-        q.serviceWorker() ||
-        h["service-worker"] === "script" ||
-        h["sec-fetch-dest"] === "serviceworker" ||
-        h["sec-fetch-dest"] === "sharedworker"
-      ) {
-        this.log("request.blocked", {
-          reason: "shared-or-service-worker",
-          origin: new URL(q.url()).origin,
-        });
-        await route.abort("blockedbyclient");
-        return;
-      }
-      let page: Page;
-      try {
-        page = q.frame().page();
-      } catch {
-        this.log("request.blocked", { reason: "unattributed-frame" });
-        await route.abort("blockedbyclient");
-        return;
-      }
-      const tab = [...this.tabs.values()].find((t) => t.page === page);
-      if (!tab || this.diskError) {
-        this.log("request.blocked", {
-          reason: !tab ? "unowned-page" : "disk-guard",
-        });
-        await route.abort("blockedbyclient");
-        return;
-      }
-      const headers = { ...h, ...tab.headers };
-      const u = new URL(q.url());
-      this.log("request.routed", {
-        agentId: tab.agentId,
-        tabId: tab.tabId,
-        lane: tab.lane,
-        headerHash: fingerprint(tab.headers),
-        type: q.resourceType(),
-        origin: u.origin,
-        path: u.pathname,
-        headerHit: Object.entries(tab.headers).every(
-          ([k, v]) => headers[k] === v,
-        ),
-      });
-      await route.continue({ headers });
-    } catch (e) {
-      if (this.browser?.isConnected()) {
-        this.log("request.failed", { error: String(e) });
-      }
-      // The page/target can disappear while a request is paused. Do not continue it without its owner.
-      try {
-        await route.abort("blockedbyclient");
-      } catch (abortError) {
-        this.log("request.abort-failed", { error: String(abortError) });
-      }
-    }
-  }
   private requireReady() {
-    if (!this.ready || !this.browser?.isConnected())
+    if (!this.ready || this.browser?.closed)
       throw Error(
-        "Browser recovering; old tab leases are invalid. Retry by opening a new tab after health is ready.",
+        "Browser recovering; old tab leases are invalid. Open a new tab after health is ready.",
       );
     if (this.diskError) throw Error(this.diskError);
   }
@@ -207,46 +176,46 @@ export class Steward {
       throw Error(`Unknown lane: ${lane}`);
     if (this.tabs.size + this.openings >= this.config.maxTabs)
       throw Error("Tab capacity reached");
+    const headers = normalizeHeaders({ ...this.config.lanes[lane], ...extra });
+    if (Object.keys(headers).length && !this.config.headerDomains.length)
+      throw Error(
+        "Lane headers require an explicit headerDomains allowlist (or --header-domains)",
+      );
     this.openings++;
     try {
       await guardDisk(this.config);
-      const headers = normalizeHeaders({
-        ...this.config.lanes[lane],
-        ...extra,
-      });
-      const page = await this.context!.newPage();
-      const tab: Tab = {
-        tabId: randomUUID(),
-        agentId,
-        lane,
-        headers,
-        page,
-        expiresAt: Date.now() + this.config.leaseMs,
-        busy: false,
-      };
-      this.tabs.set(tab.tabId, tab);
-      page.on("close", () => {
-        void this.release(tab.tabId, false).catch((e) =>
-          this.log("tab.cleanup-error", { error: String(e) }),
-        );
-      });
-      page.on("popup", (popup) => {
-        void popup
-          .close()
-          .catch((e) => this.log("popup.close-error", { error: String(e) }));
+      const tabId = randomUUID(),
+        url = `about:blank#${tabId}`;
+      const { targetId } = await this.browser!.send("Target.createTarget", {
+        url,
       });
       try {
-        await page.setExtraHTTPHeaders(headers);
-        await this.downloads!.watch(page, tab);
+        const session = await this.browser!.attach(targetId);
+        const tab: Tab = {
+          tabId,
+          agentId,
+          lane,
+          headers,
+          targetId,
+          session,
+          url,
+          pageId: 0,
+          expiresAt: Date.now() + this.config.leaseMs,
+          busy: false,
+        };
+        await this.policy!.watch(session, "page", tab, url);
+        tab.pageId = await this.devtools!.pageId(url);
+        this.tabs.set(tabId, tab);
         this.log("tab.opened", {
           agentId,
-          tabId: tab.tabId,
+          tabId,
+          pageId: tab.pageId,
           lane,
           headerHash: fingerprint(headers),
         });
         return this.describe(tab);
       } catch (e) {
-        await this.release(tab.tabId, true);
+        await this.browser!.send("Target.closeTarget", { targetId });
         throw e;
       }
     } finally {
@@ -256,11 +225,12 @@ export class Steward {
   private describe(t: Tab) {
     return {
       tabId: t.tabId,
+      pageId: t.pageId,
       agentId: t.agentId,
       lane: t.lane,
       headerHash: fingerprint(t.headers),
       expiresAt: t.expiresAt,
-      url: t.page.url(),
+      url: t.url,
       busy: t.busy,
     };
   }
@@ -279,16 +249,9 @@ export class Steward {
     const t = this.tabs.get(tabId);
     if (!t) return;
     this.tabs.delete(tabId);
-    if (close && !t.page.isClosed()) await t.page.close();
-    if (this.downloads) {
-      try {
-        await this.downloads.forget(tabId);
-      } catch (e) {
-        if (this.ready && this.browser?.isConnected() && !t.page.isClosed())
-          throw e;
-        this.log("tab.session-detached", { tabId });
-      }
-    }
+    await this.downloads!.forget(tabId);
+    if (close)
+      await this.browser!.send("Target.closeTarget", { targetId: t.targetId });
     this.log("tab.released", { agentId: t.agentId, tabId, lane: t.lane });
   }
   async closeTab(agentId: string, tabId: string) {
@@ -305,11 +268,6 @@ export class Steward {
     for (const t of [...this.tabs.values()])
       if (t.agentId === agentId) await this.release(t.tabId);
   }
-  private locator(page: Page, args: Record<string, unknown>): Locator {
-    if (typeof args.ref === "string") return page.getByRef(args.ref);
-    if (typeof args.selector === "string") return page.locator(args.selector);
-    throw Error("Provide ref from browser_snapshot or a CSS selector");
-  }
   async action(
     agentId: string,
     tabId: string,
@@ -322,45 +280,45 @@ export class Steward {
     t.busy = true;
     t.expiresAt = Date.now() + this.config.leaseMs;
     try {
-      switch (method) {
-        case "navigate": {
-          const u = new URL(String(args.url));
-          if (!["http:", "https:", "about:"].includes(u.protocol))
-            throw Error("Only http(s) and about URLs are supported");
-          await t.page.goto(u.href);
-          return {
-            url: t.page.url(),
-            snapshot: await t.page.ariaSnapshot({ mode: "ai" }),
-          };
+      if (method === "devtools") {
+        const name = String(args.name);
+        if (!diagnosticNames.includes(name))
+          throw Error("Only owned-page diagnostics are exposed");
+        const params = args.arguments as Record<string, unknown>;
+        if (Object.hasOwn(params, "pageId"))
+          throw Error("pageId is assigned by tab ownership");
+        if (
+          name === "performance_analyze_insight" &&
+          (this.traceOwner !== t.tabId || this.traceBusy)
+        )
+          throw Error(
+            "The latest completed trace belongs to another tab or is still recording",
+          );
+        const records = [
+          "performance_start_trace",
+          "lighthouse_audit",
+        ].includes(name);
+        if (name === "performance_start_trace" && params.autoStop === false)
+          throw Error("Shared-browser traces require autoStop=true");
+        if (records && this.traceBusy)
+          throw Error("A browser-wide diagnostic is already recording");
+        if (records) {
+          this.traceBusy = true;
+          this.traceOwner = undefined;
         }
-        case "click":
-          await this.locator(t.page, args).click();
-          return { snapshot: await t.page.ariaSnapshot({ mode: "ai" }) };
-        case "type": {
-          const loc = this.locator(t.page, args);
-          if (args.slowly) await loc.pressSequentially(String(args.text));
-          else await loc.fill(String(args.text));
-          if (args.submit) await loc.press("Enter");
-          return { snapshot: await t.page.ariaSnapshot({ mode: "ai" }) };
+        try {
+          const result = await this.devtools!.call(
+            name,
+            { ...params, pageId: t.pageId },
+            80000,
+          );
+          if (name === "performance_start_trace") this.traceOwner = t.tabId;
+          return result;
+        } finally {
+          if (records) this.traceBusy = false;
         }
-        case "snapshot":
-          return {
-            url: t.page.url(),
-            snapshot: await t.page.ariaSnapshot({ mode: "ai" }),
-          };
-        case "extract":
-          return {
-            text: (
-              await t.page
-                .locator(
-                  typeof args.selector === "string" ? args.selector : "body",
-                )
-                .innerText()
-            ).slice(0, 100000),
-          };
-        default:
-          throw Error(`Unknown browser action: ${method}`);
       }
+      return await this.devtools!.action(t.pageId, method, args);
     } finally {
       t.busy = false;
       t.expiresAt = Date.now() + this.config.leaseMs;
@@ -369,21 +327,55 @@ export class Steward {
   }
   private async rememberCookies() {
     try {
-      this.cookies = await this.context!.cookies();
+      const { cookies } = await this.browser!.send("Storage.getCookies");
+      // Storage.setCookies accepts CookieParam, not response-only Cookie metadata.
+      this.cookies = cookies.map(
+        ({
+          name,
+          value,
+          domain,
+          path,
+          expires,
+          httpOnly,
+          secure,
+          sameSite,
+          priority,
+          sameParty,
+          sourceScheme,
+          sourcePort,
+          partitionKey,
+        }: any) => ({
+          name,
+          value,
+          domain,
+          path,
+          ...(expires > 0 ? { expires } : {}),
+          httpOnly,
+          secure,
+          sameSite,
+          priority,
+          sameParty,
+          sourceScheme,
+          sourcePort,
+          partitionKey,
+        }),
+      );
     } catch (e) {
-      if (this.browser?.isConnected()) throw e;
+      if (!(e instanceof CdpClosedError)) throw e;
       this.log("cookies.snapshot-unavailable");
     }
   }
   health() {
     return {
       ready: this.ready && !this.diskError,
-      connected: !!this.browser?.isConnected(),
+      connected: !!this.browser && !this.browser.closed,
       mode: this.config.headless ? "headless=new" : "headed",
       tabs: this.tabs.size,
       diskError: this.diskError,
       workerPolicy: "block-shared-and-service",
       endpoint: this.chrome.endpoint,
+      officialVersion: "1.13.0",
+      officialPid: this.devtools?.transport?.pid,
     };
   }
   async recover() {
@@ -393,13 +385,14 @@ export class Steward {
     this.recovering = (async () => {
       this.log("reconnect.started");
       const completed = this.downloads?.completed.slice() || [];
-      // A lost interceptor cannot safely preserve live lane tabs. Restart the owned browser, invalidate leases, retain only its dedicated profile.
+      await this.devtools?.stop();
       await this.chrome.stop();
       this.tabs.clear();
+      this.traceOwner = undefined;
+      this.traceBusy = false;
       await this.browser?.close();
+      await this.policy?.close();
       await this.downloads?.abandon();
-      this.downloads = undefined;
-      this.context = undefined;
       await this.connect();
       this.downloads!.completed.push(...completed);
       this.log("reconnect.completed", { leasesInvalidated: true });
@@ -414,15 +407,21 @@ export class Steward {
       await this.recover();
       return;
     }
+    await this.browser!.send("Browser.getVersion");
     await this.rememberCookies();
     for (const t of [...this.tabs.values()])
       if (!t.busy && t.expiresAt < Date.now()) await this.release(t.tabId);
-    for (const p of this.context!.pages())
+    const { targetInfos } = await this.browser!.send("Target.getTargets");
+    for (const p of targetInfos)
       if (
-        p !== this.anchor &&
-        ![...this.tabs.values()].some((t) => t.page === p)
+        p.type === "page" &&
+        p.targetId !== this.anchor &&
+        ![...this.tabs.values()].some((t) => t.targetId === p.targetId) &&
+        !this.openings
       )
-        await p.close();
+        await this.browser!.send("Target.closeTarget", {
+          targetId: p.targetId,
+        });
     const previous = this.diskError;
     try {
       await guardDisk(this.config);
@@ -447,7 +446,9 @@ export class Steward {
       await this.downloads?.close();
     } finally {
       try {
+        await this.devtools?.stop();
         await this.browser?.close();
+        await this.policy?.close();
       } finally {
         await this.chrome.stop();
         this.log("steward.stopped");

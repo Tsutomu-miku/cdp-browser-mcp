@@ -9,7 +9,7 @@ Use the terminal CLI to navigate, inspect, fill, click, and extract from a dedic
 
 ## Start an execution
 
-Check `node --version`, `npm --version`, and `command -v npx`; Node.js 22+ and an installed Chrome/Chromium are required. Report a missing system dependency rather than installing it automatically. On macOS use the terminal's `/bin/zsh` shell.
+Check `node --version`, `npm --version`, and `command -v npx`; Node.js 22.12+ and Google Chrome current Stable or newer are required, including Linux headless=new. This matches official chrome-devtools-mcp requirements; older Chrome and other Chromium browsers are outside the supported baseline. Report a missing system dependency rather than installing it automatically. On macOS use the terminal's `/bin/zsh` shell.
 
 Run the Git package with:
 
@@ -28,10 +28,10 @@ The command starts or reuses one detached local browser service. Retain the retu
 If the task specifies request headers, set them when opening its tab:
 
 ```zsh
-npx --yes github:Tsutomu-miku/cdp-browser-mcp open --agent <execution-id> --headers '{"x-lane":"blue"}' --json
+npx --yes github:Tsutomu-miku/cdp-browser-mcp open --agent <execution-id> --header-domains '["example.com","*.example.com"]' --headers '{"x-lane":"blue"}' --json
 ```
 
-Use the task's actual header values. Do not invent an environment or place credentials in headers. Header changes require opening a new tab; they do not mutate an existing tab. All calls that share a login must use the same state directory. If `--config` or `--state-dir` is supplied by the user, keep it on every call. Do not point this tool at a daily Chrome profile or read its internal identity/profile files.
+Replace the example allowlist with the task's explicit trusted hostnames; use the same `--config` when sharing a configured service. Header tabs are rejected when the service has no allowlist. Use the task's actual header values. Do not invent an environment or place credentials in headers. Header changes require opening a new tab; they do not mutate an existing tab. All calls that share a login must use the same state directory. If `--config` or `--state-dir` is supplied by the user, keep it on every call. Do not point this tool at a daily Chrome profile or read its internal identity/profile files.
 
 ## Interact and verify
 
@@ -69,6 +69,10 @@ If a tab expires or the browser restarts, its old ID and refs are invalid. List 
 ## Isolation boundaries
 
 - Cookies and same-origin storage are shared deliberately. Logging out affects all tasks. This is tab ownership for cooperating agents, not an adversarial security sandbox.
-- Per-tab headers cover HTTP(S), including iframes, dedicated/nested workers, fetch, XHR, beacon, and downloads. Headers also follow cross-origin requests, so navigate only to trusted task destinations.
-- SharedWorker is disabled and ServiceWorker requests are blocked. Do not claim those features passed; report a dependency on them as a limitation. WebSocket and WebTransport header isolation is outside the guarantee.
+- Per-tab headers cover HTTP(S), including iframes, dedicated/nested workers, fetch, XHR, beacon, and downloads. Only destinations in `headerDomains` receive lane headers, including redirects and worker requests. Other hostnames receive none of the configured lane keys.
+- SharedWorker is disabled and ServiceWorker registration is rejected before document scripts run. Do not claim those features passed; report a dependency on them as a limitation. WebSocket and WebTransport header isolation is outside the guarantee.
 - Keep the browser/CDP endpoint on loopback. Remote operation requires a user-configured authenticated tunnel; do not expose a debugging port publicly.
+
+## Official diagnostics
+
+The browser service attaches a controlled official `chrome-devtools-mcp@1.13.0` subprocess to its own Chrome. Use `devtools --tool take_screenshot --arguments '{}' --agent <execution-id> --tab <tab-id> --json` for screenshots, or the page-scoped diagnostic names documented in `docs/configuration.md`. `browser_devtools` provides the same entry in MCP. Never attach a second agent-facing official server directly: it bypasses leases and header policy. Snapshots retain `[ref=...]` syntax but refs are upstream UIDs; refresh them after navigation or an upgrade.

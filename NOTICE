@@ -1,0 +1,12 @@
+cdp-browser-mcp
+Copyright (c) 2026 Tsutomu
+This project's source is licensed under the MIT License (see LICENSE).
+
+This distribution depends on chrome-devtools-mcp 1.13.0,
+Copyright 2025 Google LLC, licensed under the Apache License, Version 2.0.
+Upstream: https://github.com/ChromeDevTools/chrome-devtools-mcp
+Package: https://www.npmjs.com/package/chrome-devtools-mcp/v/1.13.0
+The upstream package is used unmodified through its MCP executable.
+Its Apache-2.0 license is reproduced in third_party/chrome-devtools-mcp-LICENSE.
+Upstream 1.13.0 ships no separate NOTICE file.
+Bundled third-party license notices are retained in the installed dependency.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-dev (unreleased)
+
+- Require Google Chrome current Stable or newer, matching the official diagnostic baseline; Linux CI follows Google's Stable channel and records its actual version instead of pinning unsupported Chrome 136/146.
+
+- Delegate page interaction and diagnostics to pinned official chrome-devtools-mcp 1.13.0, attached through browserUrl; keep MIT orchestration and include Apache-2.0 notices.
+- Use independent flat CDP sessions for tab ownership, domain-filtered lane headers, recursive worker policy and GUID downloads in the persistent default context.
+- Add explicit headerDomains / --header-domains and owned browser_devtools / CLI diagnostics; preserve existing tool names and snapshot-ref syntax.
+- Close Chrome gracefully so persistent login state reaches disk; recover official-server or CDP loss without replaying actions.
+- Expand synthetic platform tests for domain boundaries, diagnostics and persistent login. The extension PoC remains a separate draft PR.
+
 ## 0.1.1
 
 - Fix persistent default-context downloads by omitting `browserContextId` from browser-level CDP download settings and cancellation. A page target's context ID is not used for download commands.

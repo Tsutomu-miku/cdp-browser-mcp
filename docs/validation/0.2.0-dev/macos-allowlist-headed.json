@@ -1,0 +1,560 @@
+{
+  "platform": "darwin",
+  "chrome": "157.0.8103.51",
+  "official": "1.13.0",
+  "headerDomains": ["127.0.0.1"],
+  "insideRequests": 16,
+  "outsideRequests": 48,
+  "headerMismatches": 0,
+  "expected": [
+    "/policy",
+    "/policy-fetch",
+    "/policy-xhr",
+    "/policy-beacon",
+    "/policy-frame",
+    "/policy-frame-fetch",
+    "/policy-worker",
+    "/policy-worker-fetch",
+    "/policy-import",
+    "/policy-module",
+    "/policy-module-fetch",
+    "/policy-nested",
+    "/policy-nested-fetch",
+    "/policy-frame-worker",
+    "/policy-frame-worker-fetch",
+    "/redirect-out",
+    "/redirect-in",
+    "/policy-echo",
+    "/redirect-import"
+  ],
+  "requests": [
+    {
+      "sequence": 1,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy",
+      "agent": "B",
+      "lane": "B",
+      "dest": "document"
+    },
+    {
+      "sequence": 2,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy",
+      "agent": "A",
+      "lane": "A",
+      "dest": "document"
+    },
+    {
+      "sequence": 3,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 4,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 5,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/redirect-in",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 6,
+      "method": "POST",
+      "host": "localhost",
+      "path": "/policy-xhr",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 7,
+      "method": "POST",
+      "host": "localhost",
+      "path": "/policy-xhr",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 8,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/redirect-in",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 9,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame",
+      "agent": "B",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 10,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/redirect-out",
+      "agent": "B",
+      "lane": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 11,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/redirect-out",
+      "agent": "A",
+      "lane": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 12,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame",
+      "agent": "A",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 13,
+      "method": "POST",
+      "host": "localhost",
+      "path": "/policy-beacon",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 14,
+      "method": "POST",
+      "host": "localhost",
+      "path": "/policy-beacon",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 15,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-worker",
+      "agent": "B",
+      "lane": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 16,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-module",
+      "agent": "B",
+      "lane": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 17,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-worker",
+      "agent": "A",
+      "lane": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 18,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-module",
+      "agent": "A",
+      "lane": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 19,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 20,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 21,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-echo",
+      "agent": "B",
+      "lane": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 22,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-echo",
+      "agent": "A",
+      "lane": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 23,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-echo",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 24,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-echo",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 25,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 26,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 27,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "B",
+      "dest": "script"
+    },
+    {
+      "sequence": 28,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "A",
+      "dest": "script"
+    },
+    {
+      "sequence": 29,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 30,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 31,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/redirect-import",
+      "agent": "B",
+      "lane": "B",
+      "dest": "script"
+    },
+    {
+      "sequence": 32,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/redirect-import",
+      "agent": "A",
+      "lane": "A",
+      "dest": "script"
+    },
+    {
+      "sequence": 33,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-module-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 34,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-module-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 35,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "B",
+      "dest": "script"
+    },
+    {
+      "sequence": 36,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "A",
+      "dest": "script"
+    },
+    {
+      "sequence": 37,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-nested",
+      "agent": "B",
+      "lane": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 38,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/redirect-worker",
+      "agent": "B",
+      "lane": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 39,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/policy-nested",
+      "agent": "A",
+      "lane": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 40,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/redirect-worker",
+      "agent": "A",
+      "lane": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 41,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-module-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 42,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 43,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-module-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 44,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame-worker",
+      "agent": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 45,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-worker-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 46,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 47,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame-worker",
+      "agent": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 48,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-worker-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 51,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-worker-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 52,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-worker-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 53,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-nested",
+      "agent": "B",
+      "dest": "worker"
+    },
+    {
+      "sequence": 54,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-nested",
+      "agent": "A",
+      "dest": "worker"
+    },
+    {
+      "sequence": 55,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "B",
+      "dest": "script"
+    },
+    {
+      "sequence": 56,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "A",
+      "dest": "script"
+    },
+    {
+      "sequence": 57,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame-worker-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 58,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-frame-worker-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 59,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-nested-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 60,
+      "method": "OPTIONS",
+      "host": "localhost",
+      "path": "/policy-nested-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 61,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-nested-fetch",
+      "agent": "B",
+      "dest": "empty"
+    },
+    {
+      "sequence": 62,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-nested-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 63,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "A",
+      "dest": "script"
+    },
+    {
+      "sequence": 64,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-import",
+      "agent": "B",
+      "dest": "script"
+    },
+    {
+      "sequence": 65,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-nested-fetch",
+      "agent": "A",
+      "dest": "empty"
+    },
+    {
+      "sequence": 66,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/policy-nested-fetch",
+      "agent": "B",
+      "dest": "empty"
+    }
+  ]
+}

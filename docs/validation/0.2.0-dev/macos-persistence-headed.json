@@ -1,0 +1,10 @@
+{
+  "platform": "darwin",
+  "official": "1.13.0",
+  "persistentCookie": true,
+  "localStorage": true,
+  "serviceRestart": true,
+  "officialProcessKillRecovery": true,
+  "oldLeasesInvalidated": true,
+  "loginRequests": 1
+}

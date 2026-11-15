@@ -1,23 +1,24 @@
 {
   "name": "cdp-browser-mcp",
-  "version": "0.1.1",
+  "version": "0.2.0-dev",
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
-    "playwright": "1.65.1",
+    "chrome-devtools-mcp": "1.13.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "prettier": "^3.6.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "playwright": "1.65.1"
   },
-  "description": "Shared-identity CDP browser with per-agent tab leases and MCP tools",
+  "description": "Shared Google Chrome (current Stable or newer) sessions with owned tabs and official DevTools MCP",
   "license": "MIT",
   "bin": {
     "cdp-browser-mcp": "dist/cli.js"
@@ -29,7 +30,9 @@
     "CONTRIBUTING.md",
     "docs/*.md",
     "examples",
-    "skills"
+    "skills",
+    "NOTICE",
+    "third_party"
   ],
   "scripts": {
     "build": "tsc",
@@ -51,8 +54,8 @@
     "mcp",
     "cdp",
     "browser",
-    "playwright",
-    "multi-agent"
+    "multi-agent",
+    "chrome-devtools"
   ],
   "bugs": {
     "url": "https://github.com/Tsutomu-miku/cdp-browser-mcp/issues"

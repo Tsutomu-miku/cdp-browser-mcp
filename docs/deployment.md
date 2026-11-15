@@ -4,7 +4,7 @@
 
 Install the command from a [built tarball](../CONTRIBUTING.md) before following the examples below.
 
-Install Node.js 22+ and Chrome/Chromium using your system's package manager. The tool does not install browsers or system dependencies. Linux uses `--headless=new` by default:
+Install Node.js 22.12+ and Google Chrome current Stable or newer using your system's package manager. This minimum also applies to Linux headless=new and follows the [official chrome-devtools-mcp requirements](https://github.com/ChromeDevTools/chrome-devtools-mcp#requirements). Older Chrome and other Chromium browsers are not supported for the full diagnostic toolset. The tool does not install browsers or system dependencies. Linux uses `--headless=new` by default:
 
 ```sh
 cdp-browser-mcp launch --headless --state-dir /srv/browser-data
@@ -77,3 +77,9 @@ Startup settings are recorded in `launch-config.json` after acquiring the servic
 Connecting to an externally managed CDP service is not implemented. A future adapter must provide a shared default context, persistent profile, authenticated CDP, startup worker policy, disconnection shutdown, frame ownership, and authenticated download retrieval by context/download GUID. Local download paths cannot be used directly for a remote browser.
 
 See [testing](testing.md) for the platforms and workflows currently validated.
+
+## Official server lifecycle (0.2.0-dev)
+
+The supervisor owns both Chrome and the official MCP subprocess. The subprocess uses the installed, pinned `chrome-devtools-mcp@1.13.0` executable with `--browserUrl http://127.0.0.1:<allocated-port>`, `--pageIdRouting`, and structured results; usage statistics and CrUX URL submission are disabled. No runtime `npx` resolution or upstream Chrome launch occurs. Keep the Node executable on the service PATH and install dependencies through `npm ci`.
+
+Normal stop uses `Browser.close` and waits for Chrome to finish writing its profile. Persistent cookies and localStorage survive a service restart. Session cookies additionally have an in-memory snapshot for connection recovery; that snapshot does not survive a service restart. Actual SSO policy may require reauthentication. A lost CDP connection or official subprocess restarts only this dedicated Chrome and invalidates old leases; actions are never replayed. Use an independent `stateDir` and port (`cdpPort: 0` by default) for each independent service or test run.

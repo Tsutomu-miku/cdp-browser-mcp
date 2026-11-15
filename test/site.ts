@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 export interface RequestRecord {
   sequence: number;
   method: string;
+  host: string;
   path: string;
   agent: string | null;
   lane?: string;
@@ -18,6 +19,7 @@ export async function syntheticSite() {
     records.push({
       sequence: records.length + 1,
       method: req.method!,
+      host: new URL("http://" + req.headers.host).hostname,
       path: u.pathname,
       agent: a,
       lane: req.headers["x-lane"] as string,
@@ -26,6 +28,99 @@ export async function syntheticSite() {
       dest: req.headers["sec-fetch-dest"] as string,
     });
     res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    if (req.method === "OPTIONS") {
+      res.end();
+      return;
+    }
+    const outside = base.replace("127.0.0.1", "localhost");
+    if (u.pathname === "/persistent-login") {
+      res.setHeader(
+        "Set-Cookie",
+        "persistentIdentity=shared-profile; Max-Age=3600; Path=/; HttpOnly; SameSite=Lax",
+      );
+      res.setHeader("Content-Type", "text/html");
+      res.end(
+        '<script>localStorage.setItem("shared-login","shared-profile")</script><body>Logged in</body>',
+      );
+      return;
+    }
+    if (u.pathname === "/persistent-private") {
+      res.setHeader("Content-Type", "text/html");
+      res.end(
+        `<body>${req.headers.cookie?.includes("persistentIdentity=shared-profile") ? "Signed in" : "Missing login"}<script>document.body.append(' storage='+localStorage.getItem('shared-login'))</script></body>`,
+      );
+      return;
+    }
+    if (u.pathname.startsWith("/redirect-")) {
+      res.writeHead(302, {
+        Location:
+          (u.pathname === "/redirect-in" ? base : outside) +
+          (u.pathname === "/redirect-import"
+            ? "/policy-import"
+            : "/policy-echo") +
+          "?a=" +
+          a,
+      });
+      res.end();
+      return;
+    }
+    if (u.pathname === "/policy") {
+      res.setHeader("Content-Type", "text/html");
+      res.end(`<!doctype html><title>Policy ${a}</title><a id="download" href="${outside}/download?a=${a}">Download</a><iframe src="${outside}/policy-frame?a=${a}"></iframe><script>
+      window.done=Promise.all([
+        fetch('${outside}/policy-fetch?a=${a}',{headers:{'x-lane':'SPOOFED'}}),
+        fetch('/redirect-out?a=${a}'),fetch('${outside}/redirect-in?a=${a}'),
+        new Promise((r,j)=>{let x=new XMLHttpRequest();x.onload=r;x.onerror=j;x.open('POST','${outside}/policy-xhr?a=${a}');x.send('test')}),
+        ...['worker','module'].map(kind=>new Promise((r,j)=>{const w=new Worker('/policy-'+kind+'?a=${a}',kind==='module'?{type:'module'}:{});w.onmessage=r;w.onerror=j}))
+      ]); navigator.sendBeacon('${outside}/policy-beacon?a=${a}','test');
+      console.log('owned-console-${a}');
+      </script>`);
+      return;
+    }
+    if (u.pathname === "/policy-frame") {
+      res.setHeader("Content-Type", "text/html");
+      res.end(
+        `<script>fetch('/policy-frame-fetch?a=${a}');new Worker('/policy-frame-worker?a=${a}')</script>`,
+      );
+      return;
+    }
+    if (u.pathname === "/policy-worker") {
+      res.setHeader("Content-Type", "text/javascript");
+      res.end(
+        `importScripts('${outside}/policy-import?a=${a}');importScripts('/redirect-import?a=${a}');Promise.all([fetch('${outside}/policy-worker-fetch?a=${a}',{headers:{'x-lane':'SPOOFED'}}),new Promise(r=>{let w=new Worker('/policy-nested?a=${a}');w.onmessage=r}),new Promise(r=>{let w=new Worker('/redirect-worker?a=${a}');w.onmessage=r;w.onerror=r})]).then(()=>postMessage('done'))`,
+      );
+      return;
+    }
+    if (u.pathname === "/policy-module") {
+      res.setHeader("Content-Type", "text/javascript");
+      res.end(
+        `import '${outside}/policy-import?a=${a}';fetch('${outside}/policy-module-fetch?a=${a}').then(()=>postMessage('done'))`,
+      );
+      return;
+    }
+    if (u.pathname === "/policy-frame-worker") {
+      res.setHeader("Content-Type", "text/javascript");
+      res.end(
+        `new Worker('/policy-nested?a=${a}');fetch('/policy-frame-worker-fetch?a=${a}').then(()=>postMessage('done'))`,
+      );
+      return;
+    }
+    if (u.pathname === "/policy-nested") {
+      res.setHeader("Content-Type", "text/javascript");
+      res.end(
+        `importScripts('${outside}/policy-import?a=${a}');fetch('${outside}${u.pathname}-fetch?a=${a}').then(()=>postMessage('done'))`,
+      );
+      return;
+    }
+    if (u.pathname === "/policy-import") {
+      res.setHeader("Content-Type", "text/javascript");
+      res.end("");
+      return;
+    }
+
     if (u.pathname === "/login") {
       res.setHeader(
         "Set-Cookie",
@@ -50,7 +145,7 @@ export async function syntheticSite() {
     if (u.pathname === "/iframe") {
       res.setHeader("Content-Type", "text/html");
       res.end(
-        `<body>Frame ${a}<a id="frame-download" href="/download?a=${a}">Frame download</a><script>fetch('/iframe-fetch?a=${a}');new Worker('/iframe-worker?a=${a}')</script></body>`,
+        `<body>Frame ${a}<a id="frame-download" href="/download?a=${a}">Frame download</a><script>fetch('/iframe-fetch?a=${a}');new Worker('/iframe-worker?a=${a}');window.backgroundPolicy=navigator.serviceWorker.register('/sw?a=${a}').then(()=>false,()=>true)</script></body>`,
       );
       return;
     }

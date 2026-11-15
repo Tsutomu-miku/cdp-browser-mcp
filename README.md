@@ -5,13 +5,17 @@ A shared Chrome browser for multiple AI agents. Log in once, give each agent its
 - **Shared login:** cookies and browser storage persist in a dedicated Chrome profile.
 - **Independent tabs:** each agent owns its tabs, actions, leases, and downloads.
 - **Per-tab headers:** use custom headers or named presets without changing another agent's requests.
-- **Standard MCP tools:** navigate, click, type, snapshot, extract, and manage tabs through Playwright.
+- **Standard MCP tools:** navigate, click, type, snapshot, extract, and manage tabs through official Chrome DevTools MCP.
 
-Requires **Node.js 22+** and **Google Chrome or Chromium** on macOS or Linux.
+Requires **Node.js 22.12+** and **Google Chrome current Stable or newer**, including Linux `headless=new`. This follows the [official Chrome DevTools MCP requirements](https://github.com/ChromeDevTools/chrome-devtools-mcp#requirements). Other Chromium-based browsers and older Chrome versions are outside the supported baseline.
 
-**Linux:** use v0.1.1 or later. v0.1.0 incorrectly supplied a page target's `browserContextId` to default-context download commands, which can reject startup. v0.1.1 omits that parameter for every platform and preserves per-agent download isolation. [Platform validation and CI](docs/testing.md) distinguish measured results from deployment guidance.
+Official diagnostics use recent CDP commands, including Lighthouse's `Network.emulateNetworkConditionsByRule`. Chrome 136/146 can pass basic browser operations yet fail those diagnostics; they are not a compatibility target for 0.2.0-dev. Linux CI installs Google's current Stable channel and prints the actual version on every run.
 
-v0.1.1 validation: the full four-test suite passes on macOS Chrome 157 (headed and headless) and Ubuntu 22.04 Chrome 136/146 (headless). [Request-level evidence](docs/validation/v0.1.1/README.md).
+**Historical Linux download fix:** v0.1.0 incorrectly supplied a page target's `browserContextId` to default-context download commands, which can reject startup. v0.1.1 omits that parameter for every platform and preserves per-agent download isolation. The 0.2.0-dev browser baseline is current Stable or newer as stated above. [Platform validation and CI](docs/testing.md) distinguish measured results from deployment guidance.
+
+**0.2.0-dev:** depends on [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) (Apache-2.0). We spawn its MCP executable with `--browserUrl` pointing at our loopback Chrome; the official server does not launch or choose a profile. This project's orchestration remains MIT; see [NOTICE](NOTICE) and the [upstream license](third_party/chrome-devtools-mcp-LICENSE).
+
+The orchestration layer owns Chrome/profile lifecycle, agent↔tab/pageId leases, domain-filtered lane headers, and downloads. Playwright is now a test-only dependency. The [extension backend PoC](https://github.com/Tsutomu-miku/cdp-browser-mcp/pull/1) remains a separate draft: daily-browser, explicitly selected tabs, single lane, no CDP port. It is not included in this branch or enabled by a configuration option. See [architecture](docs/architecture.md).
 
 ## Quick start
 
@@ -87,7 +91,7 @@ npx --yes github:Tsutomu-miku/cdp-browser-mcp stop
 
 ## Per-tab headers
 
-Set headers for all tabs opened by an MCP client:
+Set headers for all tabs opened by an MCP client, with an explicit hostname allowlist:
 
 ```json
 {
@@ -100,6 +104,8 @@ Set headers for all tabs opened by an MCP client:
         "mcp",
         "--agent",
         "agent-a",
+        "--header-domains",
+        "[\"example.com\",\"*.example.com\"]",
         "--headers",
         "{\"x-lane\":\"blue\"}"
       ]
@@ -112,6 +118,8 @@ Set headers for all tabs opened by an MCP client:
         "mcp",
         "--agent",
         "agent-b",
+        "--header-domains",
+        "[\"example.com\",\"*.example.com\"]",
         "--headers",
         "{\"x-lane\":\"green\"}"
       ]
@@ -120,26 +128,27 @@ Set headers for all tabs opened by an MCP client:
 }
 ```
 
-For reusable presets, use [`--config` and `--lane`](docs/configuration.md#header-presets). No configuration file is needed for the default setup.
+For reusable presets, use [`--config` and `--lane`](docs/configuration.md#header-presets). No configuration file is needed for the default setup. Headers require `headerDomains` or `--header-domains`; requests to other hosts carry none of the configured lane keys.
 
 ## Tools
 
-| Tool                                   | Purpose                                         |
-| -------------------------------------- | ----------------------------------------------- |
-| `browser_navigate`                     | Open a URL and return an accessibility snapshot |
-| `browser_click` / `browser_type`       | Interact using snapshot refs or CSS selectors   |
-| `browser_snapshot` / `browser_extract` | Read the current page                           |
-| `browser_tabs` / `browser_close`       | Manage this agent's tabs                        |
-| `browser_downloads`                    | List this agent's downloads                     |
-| `browser_lease`                        | Extend the current tab's lease                  |
+| Tool                                   | Purpose                                                   |
+| -------------------------------------- | --------------------------------------------------------- |
+| `browser_navigate`                     | Open a URL and return an accessibility snapshot           |
+| `browser_click` / `browser_type`       | Interact using snapshot refs or CSS selectors             |
+| `browser_snapshot` / `browser_extract` | Read the current page                                     |
+| `browser_tabs` / `browser_close`       | Manage this agent's tabs                                  |
+| `browser_downloads`                    | List this agent's downloads                               |
+| `browser_devtools`                     | Owned-page screenshot, network/console, Lighthouse, trace |
+| `browser_lease`                        | Extend the current tab's lease                            |
 
 Tool names follow Playwright MCP conventions. This project provides a subset, with tab ownership and shared-session behavior added.
 
 ## Limits
 
-**SharedWorker is disabled and ServiceWorker requests are blocked.** Those workers belong to an origin, so their background traffic cannot safely inherit a single tab's headers. Sites that require offline caches, push, or other ServiceWorker features may not work.
+**SharedWorker is disabled and ServiceWorker registration is rejected before document scripts run.** Those workers belong to an origin, so their background traffic cannot safely inherit a single tab's headers. Sites that require offline caches, push, or other ServiceWorker features may not work.
 
-Cookies and same-origin storage are shared intentionally: logging out affects every agent. Tab ownership prevents accidental interference between trusted agents; it is not a security sandbox. Custom headers also accompany cross-origin HTTP requests, so open trusted sites only. WebSocket and WebTransport traffic is outside the header isolation guarantee.
+Cookies and same-origin storage are shared intentionally: logging out affects every agent. Tab ownership prevents accidental interference between trusted agents; it is not a security sandbox. Custom headers accompany HTTP(S) requests only to the explicitly allowlisted hostnames; validate that list before sending sensitive values. WebSocket and WebTransport traffic is outside the header isolation guarantee.
 
 ## Documentation
 

@@ -176,6 +176,8 @@ test(
               root,
               "--agent",
               id,
+              "--header-domains",
+              '["127.0.0.1","localhost"]',
               "--headers",
               JSON.stringify({ "x-lane": id }),
               process.env.STEWARD_HEADED ? "--headed" : "--headless",

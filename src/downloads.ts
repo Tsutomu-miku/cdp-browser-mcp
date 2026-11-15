@@ -1,4 +1,4 @@
-import type { CDPSession, Page } from "playwright";
+import type { CdpSession } from "./cdp.js";
 import { mkdir, rename, rm } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { basename, join, resolve } from "node:path";
@@ -17,12 +17,15 @@ export class Downloads {
     guid: string;
     path: string;
   }[] = [];
-  readonly sessions = new Map<string, CDPSession>();
+  readonly sessions = new Map<string, CdpSession>();
   private tasks = new Set<Promise<void>>();
   private blocked = false;
   readonly staging: string;
   constructor(
-    readonly cdp: CDPSession,
+    readonly cdp: {
+      send(method: string, params?: Record<string, unknown>): Promise<any>;
+      on(event: string, handler: (e: any) => void): unknown;
+    },
     readonly root: string,
     readonly log: Log,
     readonly fatal: (e: unknown) => void,
@@ -54,10 +57,10 @@ export class Downloads {
     });
     if (blocked) await this.cancelAll();
   }
-  async watch(page: Page, input: DownloadOwner) {
+  async watch(s: CdpSession, input: DownloadOwner) {
     const owner: DownloadOwner = { agentId: input.agentId, tabId: input.tabId };
-    const s = await page.context().newCDPSession(page);
-    this.sessions.set(owner.tabId, s);
+    this.sessions.set(s.id!, s);
+    s.once("closed", () => this.sessions.delete(s.id!));
     const assign = (id: string) => this.frameOwners.set(id, owner);
     s.on("Page.frameAttached", (e) => assign(e.frameId));
     s.on("Page.frameNavigated", (e) => assign(e.frame.id));
@@ -68,7 +71,7 @@ export class Downloads {
     await s.send("Page.enable");
     await s.send("Emulation.setFocusEmulationEnabled", { enabled: true });
     const { frameTree } = await s.send("Page.getFrameTree");
-    const visit = (t: typeof frameTree) => {
+    const visit = (t: any) => {
       assign(t.frame.id);
       t.childFrames?.forEach(visit);
     };
@@ -132,9 +135,6 @@ export class Downloads {
         await this.cdp.send("Browser.cancelDownload", {
           guid,
         });
-    const s = this.sessions.get(tabId);
-    this.sessions.delete(tabId);
-    if (s) await s.detach();
   }
   async cancelAll() {
     for (const guid of this.pending.keys())

@@ -15,7 +15,7 @@ export async function serveMcp(
     rpc(admin, method, params, session.token);
   const server = new McpServer({
     name: "cdp-browser-mcp",
-    version: "0.1.1",
+    version: "0.2.0-dev",
   });
   let activeTab: string | undefined;
   let stopped = false;
@@ -150,6 +150,19 @@ export async function serveMcp(
       inputSchema: {},
     },
     async () => result(await call("renew", { tabId: await tab() })),
+  );
+  server.registerTool(
+    "browser_devtools",
+    {
+      description:
+        "Run an official chrome-devtools-mcp page diagnostic on the current owned tab: take_screenshot, network/console, Lighthouse or performance trace. pageId is assigned by ownership.",
+      inputSchema: {
+        name: z.string(),
+        arguments: z.record(z.string(), z.unknown()).default({}),
+      },
+    },
+    async (args) =>
+      await call("action", { tabId: await tab(), action: "devtools", args }),
   );
   // Idle/disconnected clients do not renew automatically: a crashed process must lose its tabs.
   const stop = async () => {

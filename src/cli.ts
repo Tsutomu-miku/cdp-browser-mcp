@@ -2,7 +2,13 @@
 import { parseArgs } from "node:util";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { loadConfig, configSchema, headerSchema, idSchema } from "./config.js";
+import {
+  loadConfig,
+  configSchema,
+  headerSchema,
+  idSchema,
+  headerDomainsSchema,
+} from "./config.js";
 import { Broker, rpc, SupervisorBusyError } from "./broker.js";
 import {
   ensureSupervisor,
@@ -20,8 +26,11 @@ const { values, positionals } = parseArgs({
     tab: { type: "string" },
     url: { type: "string" },
     headers: { type: "string" },
+    "header-domains": { type: "string" },
     ref: { type: "string" },
     selector: { type: "string" },
+    tool: { type: "string" },
+    arguments: { type: "string" },
     text: { type: "string" },
     submit: { type: "boolean" },
     slowly: { type: "boolean" },
@@ -35,7 +44,14 @@ const { values, positionals } = parseArgs({
   },
 });
 const command = positionals[0];
-const browserActions = ["navigate", "click", "type", "snapshot", "extract"];
+const browserActions = [
+  "navigate",
+  "click",
+  "type",
+  "snapshot",
+  "extract",
+  "devtools",
+];
 const commands = [
   "launch",
   "serve",
@@ -63,6 +79,7 @@ Commands:
   type                  Fill --ref/--selector with --text <value>
   snapshot              Read an owned tab's accessibility snapshot and refs
   extract               Read visible text (optional --selector <css>)
+  devtools --tool <name> --arguments <json>  Run an owned-page official diagnostic
   tabs --agent <id>     List only this agent's tabs
   downloads --agent <id>  List only this agent's completed downloads
   launch                Start the shared browser in the background
@@ -76,6 +93,7 @@ Commands:
 
 Options:
   --headers <json>      Per-tab request headers, e.g. '{"x-lane":"blue"}'
+  --header-domains <json>  Explicit hostname allowlist for lane headers
   --agent <id>          Unique execution/session ID (not a shared agent name)
   --tab <id>            Explicit owned tab ID for browser actions
   --ref / --selector    Element ref from snapshot, or a CSS selector
@@ -131,6 +149,10 @@ async function main() {
     throw Error("Choose --headed or --headless");
   if (values.headed) config.headless = false;
   if (values.headless) config.headless = true;
+  if (values["header-domains"])
+    config.headerDomains = headerDomainsSchema.parse(
+      JSON.parse(values["header-domains"]),
+    );
   configSchema.parse(config);
   if (command === "serve") {
     const broker = new Broker(config);
@@ -195,6 +217,13 @@ async function main() {
         slowly: values.slowly,
       });
     }
+    if (command === "devtools") {
+      if (!values.tool) throw Error("devtools requires --tool");
+      actionArgs.name = values.tool;
+      actionArgs.arguments = values.arguments
+        ? JSON.parse(values.arguments)
+        : {};
+    }
     if (command === "extract" && values.selector)
       actionArgs.selector = values.selector;
   }
@@ -235,7 +264,14 @@ async function main() {
       action: command,
       args: actionArgs,
     });
-    output(result, command === "extract" ? result.text : result.snapshot);
+    output(
+      result,
+      command === "devtools"
+        ? JSON.stringify(result)
+        : command === "extract"
+          ? result.text
+          : result.snapshot,
+    );
     return;
   }
   switch (command) {

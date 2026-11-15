@@ -35,6 +35,7 @@ test(
       stateDir: root,
       executablePath: process.env.CHROME_PATH,
       cdpPort: 0,
+      headerDomains: ["127.0.0.1", "localhost"],
       headless: !process.env.STEWARD_HEADED,
       leaseMs: 10000,
       lanes: {
@@ -88,7 +89,7 @@ test(
         return JSON.parse(content[0].text);
       }
       await tool(0, "browser_navigate", { url: site.base + "/login" });
-      const cookies = await broker.steward.context!.cookies();
+      const cookies = await rawA!.contexts()[0].cookies();
       assert.equal(
         cookies.find((c) => c.name === "identity")?.value,
         "synthetic-shared-login",
@@ -107,8 +108,14 @@ test(
       assert.equal(tabs.length, 2);
       const ta = tabs.find((t) => t.agentId === "A")!,
         tb = tabs.find((t) => t.agentId === "B")!;
-      const pa = broker.steward.tabs.get(ta.tabId)!.page,
-        pb = broker.steward.tabs.get(tb.tabId)!.page;
+      const pa = rawA
+          .contexts()[0]
+          .pages()
+          .find((p) => p.url().endsWith("/page?a=A"))!,
+        pb = rawB
+          .contexts()[0]
+          .pages()
+          .find((p) => p.url().endsWith("/page?a=B"))!;
       assert.equal(
         await pa.evaluate(() => document.cookie),
         "identity=synthetic-shared-login",
@@ -203,6 +210,11 @@ test(
         relativePath: d.path.slice(root.length + 1),
       }));
       for (const p of [pa, pb]) {
+        for (const frame of p.frames().filter((f) => f.parentFrame()))
+          assert.equal(
+            await frame.evaluate(() => (window as any).backgroundPolicy),
+            true,
+          );
         assert.equal(await p.evaluate(() => (window as any).swBlocked), true);
         assert.equal(
           await p.evaluate(() => (window as any).sharedBlocked),
@@ -255,6 +267,11 @@ test(
         forbiddenRequestsReceived: 0,
       };
       // Native tab close must release mappings and CDP sessions.
+      const closedSessionId = broker.steward.tabs.get(ta.tabId)!.session.id;
+      const closedSessions = [closedSessionId];
+      for (const id of closedSessions)
+        for (const session of broker.steward.browser!.sessions.values())
+          if (session.parentId === id) closedSessions.push(session.id);
       await pa.close();
       await until(
         () => !broker.steward.tabs.has(ta.tabId),
@@ -265,7 +282,15 @@ test(
           (o) => o.tabId === ta.tabId,
         ),
       );
-      assert.ok(!broker.steward.downloads!.sessions.has(ta.tabId));
+      await until(
+        () =>
+          closedSessions.every(
+            (id) =>
+              !broker.steward.policy!.sessions.has(id!) &&
+              !broker.steward.browser!.sessions.has(id!),
+          ),
+        "closed tab session leaked",
+      );
       checkpoints.nativeCloseRecycled = true;
       await tool(1, "browser_close");
       assert.equal(broker.steward.tabs.size, 0);
@@ -318,9 +343,9 @@ test(
         ready: true,
         oldLeasesInvalidated: true,
         newPid: true,
-        cookieRetained: !!(await broker.steward.context!.cookies()).find(
-          (c) => c.name === "identity",
-        ),
+        cookieRetained: !!(
+          await broker.steward.browser!.send("Storage.getCookies")
+        ).cookies.find((c: { name: string }) => c.name === "identity"),
       };
       assert.equal((checkpoints.reconnect as any).cookieRetained, true);
       await rpc(broker.admin, "close", { agentId: "A", tabId: fresh.tabId });
@@ -339,13 +364,7 @@ test(
         .trim()
         .split("\n")
         .map((s) => JSON.parse(s));
-      assert.ok(
-        log.some(
-          (e) =>
-            e.event === "request.blocked" &&
-            e.reason === "shared-or-service-worker",
-        ),
-      );
+      assert.ok(log.some((e) => e.event === "worker.policy-installed"));
       assert.ok(
         log
           .filter((e) => e.event === "request.routed")
@@ -359,8 +378,9 @@ test(
           {
             testedAt: new Date().toISOString(),
             platform: process.platform,
-            chrome: broker.steward.browser!.version(),
-            playwright: "1.65.1",
+            chrome: (await broker.steward.browser!.send("Browser.getVersion"))
+              .product,
+            official: "1.13.0",
             mode: config.headless ? "headless=new" : "headed",
             site: "synthetic loopback; fixed test identity",
             checkpoints,
@@ -374,6 +394,12 @@ test(
         ),
       );
     } catch (e) {
+      console.log(
+        "debug worker requests",
+        site.records.filter((r) =>
+          ["/sw", "/shared", "/forbidden-background"].includes(r.path),
+        ),
+      );
       console.log("debug tabs", broker.steward.list());
       console.log(
         "debug log",

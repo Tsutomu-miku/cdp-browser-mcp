@@ -1,4 +1,4 @@
-name: Linux Chrome
+name: Browser Stable
 
 on:
   push:
@@ -21,35 +21,27 @@ jobs:
   headless:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        chrome: ["136.0.7103.113", "146.0.7680.165"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - name: Download pinned Chrome for Testing
+      - name: Install current Google Chrome Stable
         shell: python
-        env:
-          CHROME_VERSION: ${{ matrix.chrome }}
         run: |
-          import os, pathlib, subprocess, urllib.request, zipfile
-          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "chrome-for-testing"
+          import os, pathlib, subprocess, urllib.request
+          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "google-chrome-stable"
           root.mkdir()
-          version = os.environ["CHROME_VERSION"]
-          archive = root / "chrome.zip"
-          urllib.request.urlretrieve(f"https://storage.googleapis.com/chrome-for-testing-public/{version}/linux64/chrome-linux64.zip", archive)
-          with zipfile.ZipFile(archive) as bundle:
-              bundle.extractall(root)
-              for entry in bundle.infolist():
-                  mode = entry.external_attr >> 16
-                  if mode:
-                      (root / entry.filename).chmod(mode)
-          chrome = root / "chrome-linux64" / "chrome"
-          subprocess.run([str(chrome), "--version"], check=True)
+          archive = root / "google-chrome-stable_current_amd64.deb"
+          urllib.request.urlretrieve("https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", archive)
+          subprocess.run(["sudo", "apt-get", "install", "--yes", str(archive)], check=True)
+          chrome = "/usr/bin/google-chrome-stable"
+          version = subprocess.check_output([chrome, "--version"], text=True).strip()
+          print(f"Chrome channel: stable; actual version: {version}", flush=True)
+          evidence = pathlib.Path("test-results")
+          evidence.mkdir(exist_ok=True)
+          (evidence / "chrome-version.txt").write_text(version + "\n")
           with open(os.environ["GITHUB_ENV"], "a") as env:
               env.write(f"CHROME_PATH={chrome}\n")
       - name: Install and run the full headless suite
@@ -57,11 +49,68 @@ jobs:
         run: |
           import subprocess
           subprocess.run(["npm", "ci"], check=True)
+          subprocess.run(["npm", "run", "format:check"], check=True)
           subprocess.run(["npm", "test"], check=True)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-chrome-${{ matrix.chrome }}
+          name: linux-chrome-stable
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+
+  macos:
+    needs: headless
+    runs-on: macos-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        mode: [headless, headed]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install current Google Chrome Stable
+        shell: python
+        run: |
+          import os, pathlib, subprocess, urllib.request
+          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "google-chrome-stable"
+          root.mkdir()
+          archive = root / "googlechrome.dmg"
+          urllib.request.urlretrieve("https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg", archive)
+          volume = root / "volume"
+          volume.mkdir()
+          subprocess.run(["hdiutil", "attach", "-nobrowse", "-readonly", "-mountpoint", str(volume), str(archive)], check=True)
+          app = root / "Google Chrome.app"
+          try:
+              subprocess.run(["ditto", str(volume / "Google Chrome.app"), str(app)], check=True)
+          finally:
+              subprocess.run(["hdiutil", "detach", str(volume)], check=True)
+          chrome = app / "Contents" / "MacOS" / "Google Chrome"
+          version = subprocess.check_output([str(chrome), "--version"], text=True).strip()
+          print(f"Chrome channel: stable; actual version: {version}", flush=True)
+          evidence = pathlib.Path("test-results")
+          evidence.mkdir(exist_ok=True)
+          (evidence / "chrome-version.txt").write_text(version + "\n")
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"CHROME_PATH={chrome}\n")
+      - name: Install and run the full suite
+        shell: python
+        env:
+          STEWARD_HEADED: ${{ matrix.mode == 'headed' && '1' || '' }}
+        run: |
+          import subprocess
+          subprocess.run(["npm", "ci"], check=True)
+          subprocess.run(["npm", "run", "format:check"], check=True)
+          subprocess.run(["npm", "test"], check=True)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-chrome-stable-${{ matrix.mode }}
           path: test-results/
           retention-days: 7
           if-no-files-found: warn

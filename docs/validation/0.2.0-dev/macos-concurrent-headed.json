@@ -1,0 +1,1301 @@
+{
+  "testedAt": "2026-11-15T07:27:03.284Z",
+  "platform": "darwin",
+  "chrome": "Chrome/157.0.8103.51",
+  "official": "1.13.0",
+  "mode": "headed",
+  "site": "synthetic loopback; fixed test identity",
+  "checkpoints": {
+    "cookieSharedAcrossMCPClients": true,
+    "cookieSharedAcrossIndependentCDPClients": true,
+    "independentOperations": [
+      "navigate",
+      "type",
+      "snapshot",
+      "click by ref",
+      "extract",
+      "download",
+      "navigation"
+    ],
+    "crossAgentDenied": true,
+    "downloads": [
+      {
+        "agentId": "B",
+        "source": "cross-origin iframe",
+        "relativePath": "downloads/agents/B/7241df60-13d6-4655-a8c7-9061332450b5/07c74261-577f-44eb-8702-5baade4454a9-same-name.txt"
+      },
+      {
+        "agentId": "A",
+        "source": "main-frame",
+        "relativePath": "downloads/agents/A/319a10fa-2527-43c3-a3e4-06995f8b7669/56770ea5-d4d3-4d15-9ed9-47551a1c58d6-same-name.txt"
+      }
+    ],
+    "allRequestTypesVerified": [
+      "/page",
+      "/style",
+      "/script",
+      "/image",
+      "/fetch",
+      "/xhr",
+      "/beacon",
+      "/iframe",
+      "/iframe-fetch",
+      "/worker",
+      "/worker-fetch",
+      "/nested-worker",
+      "/nested-fetch",
+      "/iframe-worker",
+      "/iframe-worker-fetch",
+      "/navigation",
+      "/download"
+    ],
+    "workerPolicy": {
+      "shared": "disabled at Chrome launch",
+      "service": "registration script and all SW-owned requests aborted",
+      "forbiddenRequestsReceived": 0
+    },
+    "nativeCloseRecycled": true,
+    "leaseExpiryRecycled": true,
+    "reconnect": {
+      "ready": true,
+      "oldLeasesInvalidated": true,
+      "newPid": true,
+      "cookieRetained": true
+    },
+    "diskGuard": true
+  },
+  "requests": [
+    {
+      "sequence": 1,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/login",
+      "agent": null,
+      "lane": "A",
+      "environment": "blue",
+      "dest": "document"
+    },
+    {
+      "sequence": 2,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/favicon.ico",
+      "agent": null,
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 3,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/page",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 4,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/style",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "style"
+    },
+    {
+      "sequence": 5,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/script",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "script"
+    },
+    {
+      "sequence": 6,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/image",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 7,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 8,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 9,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 10,
+      "method": "POST",
+      "host": "127.0.0.1",
+      "path": "/xhr",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 11,
+      "method": "POST",
+      "host": "127.0.0.1",
+      "path": "/beacon",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 12,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 13,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 14,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe-worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 15,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/nested-worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 16,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/worker-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 17,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe-worker-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 18,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/nested-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 19,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "empty"
+    },
+    {
+      "sequence": 20,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe-worker",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "worker"
+    },
+    {
+      "sequence": 21,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/favicon.ico",
+      "agent": null,
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 22,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe-worker-fetch",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "dest": "empty"
+    },
+    {
+      "sequence": 23,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/page",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 24,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/style",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "style"
+    },
+    {
+      "sequence": 25,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/script",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "script"
+    },
+    {
+      "sequence": 26,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/image",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 27,
+      "method": "POST",
+      "host": "127.0.0.1",
+      "path": "/xhr",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 28,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 29,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 30,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 31,
+      "method": "POST",
+      "host": "127.0.0.1",
+      "path": "/beacon",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 32,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 33,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 34,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe-worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 35,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/nested-worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "worker"
+    },
+    {
+      "sequence": 36,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/worker-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 37,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "empty"
+    },
+    {
+      "sequence": 38,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe-worker",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "worker"
+    },
+    {
+      "sequence": 39,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/favicon.ico",
+      "agent": null,
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 40,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/iframe-worker-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 41,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/nested-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "empty"
+    },
+    {
+      "sequence": 42,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/iframe-worker-fetch",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "empty"
+    },
+    {
+      "sequence": 43,
+      "method": "GET",
+      "host": "localhost",
+      "path": "/download",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "dest": "iframe"
+    },
+    {
+      "sequence": 44,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/download",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 45,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/navigation",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 46,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/navigation",
+      "agent": "B",
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 47,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/favicon.ico",
+      "agent": null,
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 48,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/favicon.ico",
+      "agent": null,
+      "lane": "B",
+      "environment": "green",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    },
+    {
+      "sequence": 49,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/navigation",
+      "agent": "A",
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "document"
+    },
+    {
+      "sequence": 50,
+      "method": "GET",
+      "host": "127.0.0.1",
+      "path": "/favicon.ico",
+      "agent": null,
+      "lane": "A",
+      "environment": "blue",
+      "identity": "identity=synthetic-shared-login",
+      "dest": "image"
+    }
+  ],
+  "events": [
+    {
+      "event": "devtools.attached",
+      "version": "1.13.0",
+      "endpoint": "http://127.0.0.1:57009",
+      "pid": 3683
+    },
+    {
+      "event": "steward.ready",
+      "version": "Chrome/157.0.8103.51",
+      "workerPolicy": "block-shared-and-service"
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669"
+    },
+    {
+      "event": "tab.opened",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "pageId": 2,
+      "lane": "blue",
+      "headerHash": "321200990f1a5a1c"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/login",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/favicon.ico",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/page",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Stylesheet",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/style",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Script",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/script",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Image",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/image",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://localhost:57002",
+      "path": "/iframe",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/xhr",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Ping",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/beacon",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/worker",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe-worker",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/worker-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe-worker-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/nested-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://localhost:57002",
+      "path": "/iframe-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://localhost:57002",
+      "path": "/iframe-worker",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/favicon.ico",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "XHR",
+      "origin": "http://localhost:57002",
+      "path": "/iframe-worker-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "tab.opened",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "pageId": 3,
+      "lane": "green",
+      "headerHash": "4585a048bccf9a59"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/page",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Stylesheet",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/style",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Script",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/script",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Image",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/image",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Document",
+      "origin": "http://localhost:57002",
+      "path": "/iframe",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/xhr",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Ping",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/beacon",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/worker",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe-worker",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/worker-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://localhost:57002",
+      "path": "/iframe-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Other",
+      "origin": "http://localhost:57002",
+      "path": "/iframe-worker",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/favicon.ico",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/iframe-worker-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/nested-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "XHR",
+      "origin": "http://localhost:57002",
+      "path": "/iframe-worker-fetch",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Document",
+      "origin": "http://localhost:57002",
+      "path": "/download",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "download.started",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "guid": "07c74261-577f-44eb-8702-5baade4454a9",
+      "contextGuid": "15fc4bc8-3064-4b86-a795-94d73e7096a4"
+    },
+    {
+      "event": "download.completed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "guid": "07c74261-577f-44eb-8702-5baade4454a9"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/download",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "download.started",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "guid": "56770ea5-d4d3-4d15-9ed9-47551a1c58d6",
+      "contextGuid": "15fc4bc8-3064-4b86-a795-94d73e7096a4"
+    },
+    {
+      "event": "download.completed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "guid": "56770ea5-d4d3-4d15-9ed9-47551a1c58d6"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/navigation",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/navigation",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/favicon.ico",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/favicon.ico",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "tab.released",
+      "agentId": "A",
+      "tabId": "319a10fa-2527-43c3-a3e4-06995f8b7669",
+      "lane": "blue"
+    },
+    {
+      "event": "tab.released",
+      "agentId": "B",
+      "tabId": "7241df60-13d6-4655-a8c7-9061332450b5",
+      "lane": "green"
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "9732b5a4-3df3-4e68-bc9f-84e61b1c9c44"
+    },
+    {
+      "event": "tab.opened",
+      "agentId": "expired",
+      "tabId": "9732b5a4-3df3-4e68-bc9f-84e61b1c9c44",
+      "pageId": 4,
+      "lane": "blue",
+      "headerHash": "321200990f1a5a1c"
+    },
+    {
+      "event": "tab.released",
+      "agentId": "expired",
+      "tabId": "9732b5a4-3df3-4e68-bc9f-84e61b1c9c44",
+      "lane": "blue"
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "39e8d09d-af49-4ce6-9379-08a4145b999c"
+    },
+    {
+      "event": "tab.opened",
+      "agentId": "A",
+      "tabId": "39e8d09d-af49-4ce6-9379-08a4145b999c",
+      "pageId": 5,
+      "lane": "blue",
+      "headerHash": "321200990f1a5a1c"
+    },
+    {
+      "event": "connection.failed",
+      "error": "Error: Orchestrator CDP disconnected"
+    },
+    {
+      "event": "reconnect.started"
+    },
+    {
+      "event": "chrome.stopped",
+      "pid": 3624
+    },
+    {
+      "event": "devtools.attached",
+      "version": "1.13.0",
+      "endpoint": "http://127.0.0.1:57106",
+      "pid": 7679
+    },
+    {
+      "event": "steward.ready",
+      "version": "Chrome/157.0.8103.51",
+      "workerPolicy": "block-shared-and-service"
+    },
+    {
+      "event": "reconnect.completed",
+      "leasesInvalidated": true
+    },
+    {
+      "event": "worker.policy-installed",
+      "tabId": "c657aae8-c8f2-4db9-b6be-0a34526fd872"
+    },
+    {
+      "event": "tab.opened",
+      "agentId": "A",
+      "tabId": "c657aae8-c8f2-4db9-b6be-0a34526fd872",
+      "pageId": 2,
+      "lane": "blue",
+      "headerHash": "321200990f1a5a1c"
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "c657aae8-c8f2-4db9-b6be-0a34526fd872",
+      "lane": "blue",
+      "type": "Document",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/navigation",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "request.routed",
+      "agentId": "A",
+      "tabId": "c657aae8-c8f2-4db9-b6be-0a34526fd872",
+      "lane": "blue",
+      "type": "Other",
+      "origin": "http://127.0.0.1:57002",
+      "path": "/favicon.ico",
+      "allowed": true,
+      "headerHit": true
+    },
+    {
+      "event": "tab.released",
+      "agentId": "A",
+      "tabId": "c657aae8-c8f2-4db9-b6be-0a34526fd872",
+      "lane": "blue"
+    },
+    {
+      "event": "disk.blocked",
+      "error": "Error: Disk guard: downloads 44 reached 1"
+    },
+    {
+      "event": "disk.restored"
+    }
+  ]
+}
