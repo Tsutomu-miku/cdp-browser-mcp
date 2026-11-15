@@ -47,7 +47,7 @@ npm run spike -- --block --headed
 
 Probe results are also written to `test-results/`. The shared/background worker fetches are intentionally outside per-tab attribution in the baseline. In blocking mode, their scripts and fetches must not reach the synthetic server.
 
-## 0.2.0-dev migration gate
+## 0.2.0 migration gate
 
 The suite now contains seven integration tests. All page actions go through the controlled official MCP server. Test-only Playwright connections independently observe Chrome state and exercise native tab closure; they are not a production execution path. Every test gets an independent temporary profile and a random loopback port. `test-results/` includes separate headed/headless request evidence and diagnostic reports.
 
@@ -55,7 +55,7 @@ The ServiceWorker fixture asserts rejected registration before scripts or backgr
 
 ## Why the old Linux pins were removed
 
-The initial 0.2.0-dev run on Chrome 136/146 passed six of seven integration tests, but official diagnostics hit the existing 80-second SDK request deadline ([failed run](https://github.com/Tsutomu-miku/cdp-browser-mcp/actions/runs/43690432173)). The independently established cause is Lighthouse's use of the newer `Network.emulateNetworkConditionsByRule` CDP command, unavailable in those old browser pins. The supported baseline is current Stable or newer; the old four-test v0.1.1 results above remain historical measurements, not a 0.2 diagnostic compatibility promise.
+The initial pre-release run for 0.2.0 on Chrome 136/146 passed six of seven integration tests, but official diagnostics hit the existing 80-second SDK request deadline ([failed run](https://github.com/Tsutomu-miku/cdp-browser-mcp/actions/runs/43690432173)). The independently established cause is Lighthouse's use of the newer `Network.emulateNetworkConditionsByRule` CDP command, unavailable in those old browser pins. The supported baseline is current Stable or newer; the old four-test v0.1.1 results above remain historical measurements, not a 0.2 diagnostic compatibility promise.
 
 After Linux passes, macOS Stable runs the full suite in headed and headless modes, with the two macOS jobs serialized. All jobs download from Google's live Stable channel, print the actual version and retain request evidence.
 

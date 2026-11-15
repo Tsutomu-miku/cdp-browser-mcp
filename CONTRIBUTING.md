@@ -28,7 +28,7 @@ To install your source build as a command (the archive name follows `package.jso
 
 ```sh
 npm pack
-NPM_CONFIG_PREFIX="$HOME/.local" npm install --global --omit=dev ./cdp-browser-mcp-0.2.0-dev.tgz
+NPM_CONFIG_PREFIX="$HOME/.local" npm install --global --omit=dev ./cdp-browser-mcp-0.2.0.tgz
 export PATH="$HOME/.local/bin:$PATH"
 cdp-browser-mcp --version
 ```
@@ -53,7 +53,7 @@ Browser tests use disposable profiles and synthetic loopback sites. Use `CHROME_
 
 ## Release artifacts
 
-Releases distribute npm-pack tgz files on GitHub, with no npmjs publication. `.github/workflows/release.yml` runs only when a `v*` tag is pushed. It requires the tag to equal `v` plus `package.json` version, installs with `npm ci`, runs `npm run check`, runs `npm pack`, inspects required archive entries, and attaches `cdp-browser-mcp-<version>.tgz` to a GitHub Release. Prerelease versions (such as `0.2.0-dev`) are marked prerelease and are excluded from the installer's default latest selection; they remain installable with explicit `VERSION`.
+Releases distribute npm-pack tgz files on GitHub, with no npmjs publication. `.github/workflows/release.yml` runs only when a `v*` tag is pushed. It requires the tag to equal `v` plus `package.json` version, installs with `npm ci`, runs `npm run check`, runs `npm pack`, inspects required archive entries, and attaches `cdp-browser-mcp-<version>.tgz` to a GitHub Release. Prerelease versions (such as `0.3.0-rc.1`) are marked prerelease and are excluded from the installer's default latest selection; they remain installable with explicit `VERSION`.
 
 The tgz contains `dist/cli.js` and other built modules, `skills/`, examples, README/CHANGELOG/CONTRIBUTING, docs, package metadata, LICENSE, NOTICE and the upstream license in `third_party/`. Dependencies are declared in package metadata and installed by npm, rather than bundled. Tests, source TypeScript and development tools are outside the runtime file allowlist.
 
@@ -63,7 +63,7 @@ Before a separately authorized release, update `package.json` and its lockfile t
 npm ci
 npm run check
 npm pack
-tar -tzf cdp-browser-mcp-0.2.0-dev.tgz
+tar -tzf cdp-browser-mcp-0.2.0.tgz
 ```
 
 Adding this workflow does not create a tag, Release or published package. Existing Releases are not backfilled automatically; a tag without the expected asset fails installation and the user may explicitly choose the clone/build method.

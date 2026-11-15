@@ -1,6 +1,6 @@
 # Architecture
 
-`0.2.0-dev` is an MIT orchestration layer over the unmodified, Apache-2.0 [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) executable. Its license and attribution ship in [NOTICE](../NOTICE) and [third_party](../third_party/chrome-devtools-mcp-LICENSE). Playwright is used only by tests and the historical probe.
+`0.2.0` is an MIT orchestration layer over the unmodified, Apache-2.0 [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) executable. Its license and attribution ship in [NOTICE](../NOTICE) and [third_party](../third_party/chrome-devtools-mcp-LICENSE). Playwright is used only by tests and the historical probe.
 
 ```mermaid
 flowchart LR

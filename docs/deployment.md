@@ -120,7 +120,7 @@ Connecting to an externally managed CDP service is not implemented. A future ada
 
 See [testing](testing.md) for the platforms and workflows currently validated.
 
-## Official server lifecycle (0.2.0-dev)
+## Official server lifecycle (0.2.0)
 
 The supervisor owns both Chrome and the official MCP subprocess. The subprocess uses the installed, pinned `chrome-devtools-mcp@1.13.0` executable with `--browserUrl http://127.0.0.1:<allocated-port>`, `--pageIdRouting`, and structured results; usage statistics and CrUX URL submission are disabled. No runtime `npx` resolution or upstream Chrome launch occurs. Keep Node and the installed command on the service PATH. The Release installer installs runtime dependencies; source checkouts use `npm ci`.
 

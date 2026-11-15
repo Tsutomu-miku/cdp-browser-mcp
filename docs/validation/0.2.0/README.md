@@ -1,6 +1,6 @@
 # Official DevTools migration evidence
 
-Version `0.2.0-dev`, official `chrome-devtools-mcp@1.13.0`. Synthetic loopback sites only; no real accounts or everyday profile used.
+Archived pre-release migration validation for version `0.2.0`, captured before stable version finalization; these records do not claim a rerun of the stable release. Official `chrome-devtools-mcp@1.13.0`. Synthetic loopback sites only; no real accounts or everyday profile used.
 
 macOS arm64 / Node 22.17.0 / Chrome 157.0.8103.51: full suite **7/7 headed and 7/7 headless=new**. The full run includes official screenshot, Lighthouse snapshot and automatic performance trace; persistent cookies/localStorage across a service restart; official process SIGKILL and independent CDP disconnect recovery; all original CLI/MCP/terminal-skill and download checks. Additional iframe ServiceWorker registration assertions passed with zero worker script/background requests received.
 

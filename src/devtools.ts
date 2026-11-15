@@ -21,7 +21,7 @@ const texts = (r: CallToolResult) =>
 export class Devtools {
   readonly client = new Client({
     name: "cdp-browser-mcp",
-    version: "0.2.0-dev",
+    version: "0.2.0",
   });
   transport?: StdioClientTransport;
   private stopping = false;

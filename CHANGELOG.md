@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0-dev (unreleased)
+## 0.2.0
 
 - Require Google Chrome current Stable or newer, matching the official diagnostic baseline; Linux CI follows Google's Stable channel and records its actual version instead of pinning unsupported Chrome 136/146.
 
