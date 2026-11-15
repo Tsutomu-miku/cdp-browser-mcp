@@ -13,10 +13,13 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "dependency-cruiser": "18.7.2",
+    "eslint": "10.15.0",
+    "playwright": "1.65.1",
     "prettier": "^3.6.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.0",
-    "playwright": "1.65.1"
+    "typescript-eslint": "8.72.2"
   },
   "description": "Shared Google Chrome (current Stable or newer) sessions with owned tabs and official DevTools MCP",
   "license": "MIT",
@@ -41,7 +44,15 @@
     "spike": "node spike/probe.mjs",
     "test:headed": "STEWARD_HEADED=1 npm test",
     "pretest": "npm run build",
-    "format:check": "prettier --check src test spike examples skills README.md docs CONTRIBUTING.md package.json"
+    "format:check": "prettier --check src test tools quality .github .githooks/pre-push AGENTS.md eslint.config.mjs dependency-cruiser.cjs tsconfig.json spike examples skills README.md docs CONTRIBUTING.md package.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --max-warnings 3",
+    "depcruise": "depcruise --config dependency-cruiser.cjs src --output-type err",
+    "arch": "npm run depcruise",
+    "test:quality": "node --test test/policy-rules.test.mjs test/dependency-policy.test.mjs test/gate-config.test.mjs",
+    "evals": "node tools/run-evals.mjs",
+    "hooks:install": "node tools/install-hooks.mjs",
+    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run evals && npm run format:check"
   },
   "author": {
     "name": "Tsutomu"

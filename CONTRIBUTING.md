@@ -25,11 +25,14 @@ If lifecycle scripts are restricted by your package manager, `npm run build` bui
 ## Checks
 
 ```sh
-npm run format:check
+npm run hooks:install
+npm run check
 npm test
 npm run test:headed
 npm pack
 ```
+
+Read [AGENTS.md](AGENTS.md) for ownership and error contracts, and [quality gates](docs/quality-gates.md) for gate coverage, size debt and evaluation limits. The pre-push hook runs deterministic checks; CI also runs the complete browser suite.
 
 Tests use disposable profiles and synthetic loopback sites. Use `CHROME_PATH` to select another installed Chrome executable. A visible test run requires a graphical session. Test artifacts are written to `test-results/` and are not committed by default.
 
