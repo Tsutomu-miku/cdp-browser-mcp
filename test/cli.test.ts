@@ -15,6 +15,19 @@ import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { readAdmin } from "../src/broker.js";
 const execute = promisify(execFile);
+// Browser.close can close CDP before macOS finishes process teardown.
+async function assertExited(pid: number) {
+  for (let i = 0; i < 50; i++) {
+    try {
+      process.kill(pid, 0);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error;
+      return;
+    }
+    await delay(100);
+  }
+  assert.fail("managed process did not exit: " + pid);
+}
 test(
   "CLI detached launch, permissions, reuse and stop leave no supervisor or socket",
   { timeout: 30000 },
@@ -73,7 +86,7 @@ test(
         .filter((e) => e.event === "chrome.started")
         .at(-1);
       assert.notEqual(launched.pid, orphanPid);
-      assert.throws(() => process.kill(orphanPid, 0));
+      await assertExited(orphanPid);
       const stop = await cli("stop");
       assert.equal(stop.stopping, true);
       for (let i = 0; i < 100; i++) {
@@ -90,18 +103,7 @@ test(
       await assert.rejects(access(admin.socket));
       await assert.rejects(access(join(root, "lock")));
       for (const pid of [launched.pid, admin.pid]) {
-        let gone = false;
-        for (let i = 0; i < 50; i++) {
-          try {
-            process.kill(pid, 0);
-            await delay(100);
-          } catch (e) {
-            if ((e as NodeJS.ErrnoException).code !== "ESRCH") throw e;
-            gone = true;
-            break;
-          }
-        }
-        assert.ok(gone, "managed process did not exit: " + pid);
+        await assertExited(pid);
       }
       await mkdir("test-results", { recursive: true });
       await writeFile(
