@@ -1,8 +1,6 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
-import { readFile } from "node:fs/promises";
+import { upstreamTransport } from "./upstream.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Log } from "./runtime.js";
 
@@ -21,7 +19,7 @@ const texts = (r: CallToolResult) =>
 export class Devtools {
   readonly client = new Client({
     name: "cdp-browser-mcp",
-    version: "0.2.0",
+    version: "0.3.0",
   });
   transport?: StdioClientTransport;
   private stopping = false;
@@ -31,13 +29,8 @@ export class Devtools {
     readonly timeoutMs: number,
   ) {}
   async start(endpoint: string, workspace: string) {
-    const require = createRequire(import.meta.url);
-    const pkg = require.resolve("chrome-devtools-mcp/package.json");
-    const { bin } = JSON.parse(await readFile(pkg, "utf8"));
-    this.transport = new StdioClientTransport({
-      command: process.execPath,
-      args: [
-        resolve(dirname(pkg), bin["chrome-devtools-mcp"]),
+    this.transport = await upstreamTransport(
+      [
         "--browserUrl",
         endpoint,
         "--pageIdRouting",
@@ -48,8 +41,8 @@ export class Devtools {
         "--workspace",
         workspace,
       ],
-      stderr: "pipe",
-    });
+      "pipe",
+    );
     this.client.onclose = () => {
       if (!this.stopping) this.disconnected();
     };
