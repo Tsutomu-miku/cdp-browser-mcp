@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
 import { promisify } from "node:util";
+import { createInterface } from "node:readline";
+import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/sdk/types.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { attachArgs } from "../src/attach/connection.js";
@@ -226,3 +228,125 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     },
   );
 }
+
+const initialize = Buffer.from(
+  JSON.stringify({
+    jsonrpc: "2.0",
+    id: 101,
+    method: "initialize",
+    params: {
+      protocolVersion: LATEST_PROTOCOL_VERSION,
+      capabilities: {},
+      clientInfo: { name: "预授权 client", version: "1.0.0" },
+    },
+  }) + "\n",
+);
+
+for (const bufferedInput of [false, true]) {
+  test(
+    `stdin EOF during pending authorization exits promptly (${bufferedInput ? "buffered initialize" : "empty pipe"})`,
+    { timeout: 15000 },
+    async () => {
+      const child = spawn(
+        process.execPath,
+        ["--import", "tsx", fixture, "host", "pending-eof"],
+        { stdio: ["pipe", "pipe", "pipe"] },
+      );
+      const closed = once(child, "close");
+      let stderr = "";
+      try {
+        await new Promise<void>((resolve, reject) => {
+          child.stderr.on("data", (data) => {
+            stderr += String(data);
+            if (/"authorizationPending":true/.test(stderr)) resolve();
+          });
+          child.once("error", reject);
+          child.once("close", () =>
+            reject(Error("Attach exited before the pending approval probe")),
+          );
+        });
+        const promptClose = once(child, "close", {
+          signal: AbortSignal.timeout(5000),
+        });
+        child.stdin.end(bufferedInput ? initialize : undefined);
+        const [code, signal] = await promptClose;
+        assert.equal(code, 0, stderr);
+        assert.equal(signal, null);
+        assert.doesNotMatch(stderr, /Request timed out|"state":"connected"/);
+        const pid = Number(stderr.match(/"fakeUpstreamPid":(\d+)/)?.[1]);
+        assert.ok(pid > 0);
+        assert.throws(() => process.kill(pid, 0), { code: "ESRCH" });
+      } finally {
+        if (child.exitCode === null && child.signalCode === null)
+          child.kill("SIGTERM");
+        await closed;
+      }
+    },
+  );
+}
+
+test(
+  "MCP initialize bytes sent before approval survive buffering, including fragmented UTF-8",
+  { timeout: 15000 },
+  async () => {
+    const child = spawn(
+      process.execPath,
+      ["--import", "tsx", fixture, "host", "approval-gate"],
+      { stdio: ["pipe", "pipe", "pipe"] },
+    );
+    const closed = once(child, "close");
+    const lines = createInterface({ input: child.stdout });
+    let stderr = "";
+    try {
+      await new Promise<void>((resolve, reject) => {
+        child.stderr.on("data", (data) => {
+          stderr += String(data);
+          if (/"authorizationPending":true/.test(stderr)) resolve();
+        });
+        child.once("error", reject);
+        child.once("close", () =>
+          reject(Error("Attach exited before approval")),
+        );
+      });
+      const response = once(lines, "line", {
+        signal: AbortSignal.timeout(5000),
+      });
+      const split = initialize.indexOf(Buffer.from("预")) + 1;
+      assert.ok(split > 0);
+      child.stdin.write(initialize.subarray(0, split));
+      await new Promise<void>((resolve, reject) =>
+        child.stdin.write(initialize.subarray(split), (error) =>
+          error ? reject(error) : resolve(),
+        ),
+      );
+      const pid = Number(stderr.match(/"fakeUpstreamPid":(\d+)/)?.[1]);
+      process.kill(pid, "SIGUSR1"); // Approves the fixture peer only; never real Chrome.
+      const [line] = await response;
+      const message = JSON.parse(line);
+      assert.equal(message.id, 101);
+      assert.equal(message.result.serverInfo.name, "cdp-browser-mcp-attach");
+      const tools = once(lines, "line", { signal: AbortSignal.timeout(5000) });
+      child.stdin.write(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          method: "notifications/initialized",
+        }) + "\n",
+      );
+      child.stdin.write(
+        JSON.stringify({ jsonrpc: "2.0", id: 102, method: "tools/list" }) +
+          "\n",
+      );
+      const [toolLine] = await tools;
+      assert.equal(JSON.parse(toolLine).result.tools[1].name, "page_echo");
+      child.stdin.end();
+      const [code] = await closed;
+      assert.equal(code, 0, stderr);
+      assert.throws(() => process.kill(pid, 0), { code: "ESRCH" });
+    } finally {
+      lines.close();
+      if (child.exitCode === null && child.signalCode === null)
+        child.kill("SIGTERM");
+      await closed;
+    }
+  },
+);

@@ -17,3 +17,11 @@ Attach contracts exercise the real SDK stdio/subprocess boundary with a fixture 
 Daily Chrome attach E2E is **not performed / awaiting the maintainer's authorization**. A human must enable remote debugging at `chrome://inspect/#remote-debugging` and click Allow in Chrome's connection dialog. The agent must not perform either action. Follow the [manual acceptance checklist](../../testing.md#attach-manual-acceptance) and record the exact reviewed PR head with the results.
 
 The version is 0.3.0 in package metadata, with no tag, Release or npm publication created. Independent review remains required before merging or releasing.
+
+## Review follow-up: disconnect during pending authorization
+
+The review found that a client could close stdin while Chrome approval was pending without the relay consuming EOF until authorization timed out. The relay now starts consuming stdin before the upstream handshake, buffers the original bytes within the MCP SDK's normal input budget, and supplies them to the SDK transport only after attachment succeeds. EOF immediately cancels the pending connection and closes the official subprocess.
+
+Two regression cases (an empty pipe and an already-written initialize request) fail against the original implementation with a 120-second approval budget and a 5-second EOF cleanup deadline. They pass with the fix. A separate contract checks that a fragmented UTF-8 initialize request sent before approval survives buffering and can use the official tools afterward. Real Chrome approval is not exercised by these fixtures.
+
+Follow-up local validation: `npm run check` passed with 14 attach contracts and the same three frozen size warnings; the changed production module has zero lint warnings. `npm test` passed 21/21 (all seven isolated browser tests plus 14 attach contracts), with no skips. The new EOF cases verify normal exit and that the official subprocess is gone, without sending a termination signal to obtain a pass.

@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { z } from "zod";
+import { once } from "node:events";
 import { serveAttach } from "../../src/attach/server.js";
 import { attachOptionsSchema } from "../../src/attach/options.js";
 
@@ -14,8 +15,16 @@ if (process.argv[2] === "upstream") {
     version: "1.0.0",
   });
   server.registerTool("list_pages", { inputSchema: {} }, async () => {
-    if (scenario === "pending") await new Promise(() => {});
-    if (scenario !== "ready")
+    if (scenario === "pending" || scenario === "pending-eof") {
+      console.error(JSON.stringify({ authorizationPending: true }));
+      await new Promise(() => {});
+    }
+    if (scenario === "approval-gate") {
+      const approved = once(process, "SIGUSR1");
+      console.error(JSON.stringify({ authorizationPending: true }));
+      await approved;
+    }
+    if (!["ready", "approval-gate"].includes(scenario))
       return {
         isError: true,
         content: [
@@ -62,7 +71,12 @@ if (process.argv[2] === "upstream") {
   try {
     await serveAttach(
       attachOptionsSchema.parse({
-        timeoutMs: scenario === "pending" ? 1000 : 5000,
+        timeoutMs:
+          scenario === "pending"
+            ? 1000
+            : scenario === "pending-eof"
+              ? 120000
+              : 5000,
       }),
       new StdioClientTransport({
         command: process.execPath,
