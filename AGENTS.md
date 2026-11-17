@@ -4,6 +4,8 @@ Read this file before every change. This repository coordinates trusted agents o
 one owned Chrome profile with separate tab leases, headers and downloads in the
 default isolated mode. Attach mode is a thin official MCP relay into a human-owned
 daily Chrome; it provides none of those isolation guarantees (see ADR 0001).
+Extension mode adds a human-consented debugger/native bridge (ADR 0002), retaining
+one official action backend and leaving isolated as the default.
 
 ## Cohesion and size
 
@@ -76,13 +78,15 @@ with its reviewed allowlist entry; do not expand the allowlist to silence a rule
 
 One lifecycle/resource has one owner:
 
-| Owner              | Responsibility                                                             |
-| ------------------ | -------------------------------------------------------------------------- |
-| `Steward`          | Readiness, connect/recover/stop, health timer and adapter assembly         |
-| `OwnedTabs`        | One tab map, reservations, lease expiry, busy and trace ownership          |
-| `CookieSnapshot`   | One recovery snapshot; no parallel snapshot in Steward                     |
-| `attach/server.ts` | Foreground attach relay and official subprocess; never owns Chrome/profile |
-| Existing adapters  | Chrome process, CDP connection, upstream process, interception, downloads  |
+| Owner                | Responsibility                                                             |
+| -------------------- | -------------------------------------------------------------------------- |
+| `Steward`            | Readiness, connect/recover/stop, health timer and adapter assembly         |
+| `OwnedTabs`          | One tab map, reservations, lease expiry, busy and trace ownership          |
+| `CookieSnapshot`     | One recovery snapshot; no parallel snapshot in Steward                     |
+| `attach/server.ts`   | Foreground attach relay and official subprocess; never owns Chrome/profile |
+| `extension/tools.ts` | One persistent official backend and per-peer daily page claims             |
+| `extension/host.ts`  | Native host reservation, authenticated relay and shutdown                  |
+| Existing adapters    | Chrome process, CDP connection, upstream process, interception, downloads  |
 
 Good: disconnect calls the existing recovery owner, invalidates leases and never
 replays failed actions. Bad: CLI and MCP each launch a recovery timer or retain a

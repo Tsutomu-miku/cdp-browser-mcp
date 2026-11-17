@@ -49,6 +49,9 @@ jobs:
               "package/README.md", "package/CONTRIBUTING.md", "package/docs/deployment.md",
               "package/examples/config.json",
               "package/LICENSE", "package/NOTICE", "package/third_party/chrome-devtools-mcp-LICENSE",
+              "package/extension/manifest.json", "package/extension/background.js",
+              "package/extension/popup.html", "package/dist/extension/host.js",
+              "package/dist/extension/setup.js", "package/docs/extension.md",
           }
           if not required <= names:
               raise SystemExit(f"Missing release files: {required - names}")

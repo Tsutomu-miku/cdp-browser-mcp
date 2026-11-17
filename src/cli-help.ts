@@ -23,7 +23,7 @@ Commands:
   serve                 Run the browser service in the foreground
 
 Options:
-  --mode <mode>        isolated (default), or attach for mcp only
+  --mode <mode>        isolated (default), attach or extension (mcp only)
   --channel <channel>  attach: stable (default), beta, dev or canary
   --attach-timeout-ms <ms>  Connection/approval timeout (default: 30000)
   --headers <json>      Per-tab request headers, e.g. '{"x-lane":"blue"}'
@@ -43,6 +43,7 @@ Options:
 
 Examples:
   cdp-browser-mcp mcp --mode attach --channel stable
+  cdp-browser-mcp mcp --mode extension --state-dir <native-host-state-directory>
   cdp-browser-mcp mcp --agent codex
   cdp-browser-mcp open https://example.com
   cdp-browser-mcp snapshot --agent task-123 --tab <tab-id>
