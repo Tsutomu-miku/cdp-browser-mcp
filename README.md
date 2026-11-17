@@ -19,6 +19,8 @@ The isolated orchestration layer owns Chrome/profile lifecycle, agent↔tab/page
 
 ## Two modes
 
+The packaged [agent skill](skills/cdp-browser-mcp/SKILL.md#选择模式isolated-vs-attach) covers both modes and their selection criteria.
+
 |                      | `isolated` (default)                                | `attach` (new in 0.3.0)                                                                         |
 | -------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Best for             | Multiple lanes/agents, CI                           | Daily tabs, existing login, human inspection                                                    |

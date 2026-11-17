@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Complete the packaged browser skill with isolated/attach mode selection, daily-Chrome setup, human authorization, official tool usage and capability/error boundaries. Update skill discovery metadata; browser behavior is unchanged from 0.3.0.
+
 ## 0.3.0
 
 - Add explicit `mcp --mode attach` alongside the unchanged default isolated mode, implementing ADR 0001 through pinned official chrome-devtools-mcp 1.13.0 `--autoConnect` and configurable stable/beta/dev/canary channels.
