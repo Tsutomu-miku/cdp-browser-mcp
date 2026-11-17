@@ -7,16 +7,53 @@ import { tmpdir, endianness } from "node:os";
 import { execFile, spawn } from "node:child_process";
 import { once } from "node:events";
 import { promisify } from "node:util";
-import { WebSocket } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { NativeChannel } from "../src/extension/native-channel.js";
 import { reserveState, readRelay } from "../src/extension/state.js";
 import { startRelay } from "../src/extension/relay.js";
 import { Audit } from "../src/extension/audit.js";
 import { runSelectedMode } from "../src/cli-mode.js";
+import { RelayClient } from "../src/extension/client.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const execute = promisify(execFile);
+
+test("ending an MCP session during relay discovery must not open a late orphan socket", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "extension-cancel-"));
+  const server = new WebSocketServer({ port: 0, host: "127.0.0.1" });
+  let connected = 0;
+  server.on("connection", () => {
+    connected++;
+  });
+  const client = new RelayClient(directory);
+  try {
+    await once(server, "listening");
+    const port = (server.address() as { port: number }).port;
+    await writeFile(
+      join(directory, "relay.json"),
+      JSON.stringify({
+        pid: process.pid,
+        token: "a".repeat(64),
+        endpoint: `ws://127.0.0.1:${port}/mcp`,
+      }),
+      { mode: 0o600 },
+    );
+    const pending = client.call("tools/list");
+    client.close();
+    await assert.rejects(pending, /ended|not connected/);
+    assert.equal(
+      connected,
+      0,
+      "EOF during discovery must not leave a new WebSocket behind",
+    );
+  } finally {
+    client.close();
+    for (const peer of server.clients) peer.terminate();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 test(
   "native host consumes an immediate hello and EOF removes only its own relay state",

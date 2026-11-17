@@ -20,6 +20,8 @@ export class RelayClient {
     this.starting ??= (async () => {
       if (this.stopped) throw Error("Extension MCP session ended");
       const { endpoint, token } = await readRelay(this.directory);
+      // EOF can arrive while discovery is awaiting filesystem I/O.
+      if (this.stopped) throw Error("Extension MCP session ended");
       const peer = new WebSocket(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
         handshakeTimeout: 5000,
