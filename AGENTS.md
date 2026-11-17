@@ -1,7 +1,9 @@
 # Repository contract
 
 Read this file before every change. This repository coordinates trusted agents on
-one owned Chrome profile with separate tab leases, headers and downloads.
+one owned Chrome profile with separate tab leases, headers and downloads in the
+default isolated mode. Attach mode is a thin official MCP relay into a human-owned
+daily Chrome; it provides none of those isolation guarantees (see ADR 0001).
 
 ## Cohesion and size
 
@@ -74,12 +76,13 @@ with its reviewed allowlist entry; do not expand the allowlist to silence a rule
 
 One lifecycle/resource has one owner:
 
-| Owner             | Responsibility                                                            |
-| ----------------- | ------------------------------------------------------------------------- |
-| `Steward`         | Readiness, connect/recover/stop, health timer and adapter assembly        |
-| `OwnedTabs`       | One tab map, reservations, lease expiry, busy and trace ownership         |
-| `CookieSnapshot`  | One recovery snapshot; no parallel snapshot in Steward                    |
-| Existing adapters | Chrome process, CDP connection, upstream process, interception, downloads |
+| Owner              | Responsibility                                                             |
+| ------------------ | -------------------------------------------------------------------------- |
+| `Steward`          | Readiness, connect/recover/stop, health timer and adapter assembly         |
+| `OwnedTabs`        | One tab map, reservations, lease expiry, busy and trace ownership          |
+| `CookieSnapshot`   | One recovery snapshot; no parallel snapshot in Steward                     |
+| `attach/server.ts` | Foreground attach relay and official subprocess; never owns Chrome/profile |
+| Existing adapters  | Chrome process, CDP connection, upstream process, interception, downloads  |
 
 Good: disconnect calls the existing recovery owner, invalidates leases and never
 replays failed actions. Bad: CLI and MCP each launch a recovery timer or retain a

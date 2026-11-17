@@ -1,6 +1,6 @@
 {
   "name": "cdp-browser-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -52,8 +52,9 @@
     "test:quality": "node --test test/policy-rules.test.mjs test/dependency-policy.test.mjs test/gate-config.test.mjs",
     "evals": "node tools/run-evals.mjs",
     "hooks:install": "node tools/install-hooks.mjs",
-    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run test:install && npm run evals && npm run format:check",
-    "test:install": "node --test test/install.test.mjs"
+    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run test:install && npm run test:attach && npm run evals && npm run format:check",
+    "test:install": "node --test test/install.test.mjs",
+    "test:attach": "node --import tsx --test test/attach.test.ts"
   },
   "author": {
     "name": "Tsutomu"

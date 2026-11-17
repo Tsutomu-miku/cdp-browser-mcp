@@ -1,6 +1,6 @@
 # CDP Browser MCP
 
-A shared Chrome browser for multiple AI agents. Log in once, give each agent its own tabs, and attach different request headers to each tab.
+Use a dedicated shared Chrome for multiple AI agents, or attach to your daily Chrome with its existing login. The default remains **isolated**. The following ownership/header guarantees apply to isolated mode.
 
 - **Shared login:** cookies and browser storage persist in a dedicated Chrome profile.
 - **Independent tabs:** each agent owns its tabs, actions, leases, and downloads.
@@ -9,13 +9,63 @@ A shared Chrome browser for multiple AI agents. Log in once, give each agent its
 
 Requires **Node.js 22.12+** and **Google Chrome current Stable or newer**, including Linux `headless=new`. This follows the [official Chrome DevTools MCP requirements](https://github.com/ChromeDevTools/chrome-devtools-mcp#requirements). Other Chromium-based browsers and older Chrome versions are outside the supported baseline.
 
-Official diagnostics use recent CDP commands, including Lighthouse's `Network.emulateNetworkConditionsByRule`. Chrome 136/146 can pass basic browser operations yet fail those diagnostics; they are not a compatibility target for 0.2.0. Linux CI installs Google's current Stable channel and prints the actual version on every run.
+Official diagnostics use recent CDP commands, including Lighthouse's `Network.emulateNetworkConditionsByRule`. Chrome 136/146 can pass basic browser operations yet fail those diagnostics; they are not a compatibility target for isolated mode. Linux CI installs Google's current Stable channel and prints the actual version on every run.
 
 **Historical Linux download fix:** v0.1.0 incorrectly supplied a page target's `browserContextId` to default-context download commands, which can reject startup. v0.1.1 omits that parameter for every platform and preserves per-agent download isolation. The 0.2.0 browser baseline is current Stable or newer as stated above. [Platform validation and CI](docs/testing.md) distinguish measured results from deployment guidance.
 
-**0.2.0:** depends on [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) (Apache-2.0). We spawn its MCP executable with `--browserUrl` pointing at our loopback Chrome; the official server does not launch or choose a profile. This project's orchestration remains MIT; see [NOTICE](NOTICE) and the [upstream license](third_party/chrome-devtools-mcp-LICENSE).
+**0.3.0:** depends on [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) (Apache-2.0). Isolated mode spawns its MCP executable with `--browserUrl` pointing at our loopback Chrome. Attach mode uses `--autoConnect --channel stable` to connect to Chrome started by you. This project's orchestration remains MIT; see [NOTICE](NOTICE) and the [upstream license](third_party/chrome-devtools-mcp-LICENSE).
 
-The orchestration layer owns Chrome/profile lifecycle, agent↔tab/pageId leases, domain-filtered lane headers, and downloads. Playwright is now a test-only dependency. The [extension backend PoC](https://github.com/Tsutomu-miku/cdp-browser-mcp/pull/1) remains a separate draft: daily-browser, explicitly selected tabs, single lane, no CDP port. It is not included in this branch or enabled by a configuration option. See [architecture](docs/architecture.md).
+The isolated orchestration layer owns Chrome/profile lifecycle, agent↔tab/pageId leases, domain-filtered lane headers, and downloads. Playwright is a test-only dependency. Per [ADR 0001](docs/adr/0001-reject-self-built-extension-use-official-autoconnect.md), the extension PoC was closed and remains historical; daily Chrome uses only the official autoConnect path.
+
+## Two modes
+
+|                      | `isolated` (default)                                | `attach` (new in 0.3.0)                                                                         |
+| -------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Best for             | Multiple lanes/agents, CI                           | Daily tabs, existing login, human inspection                                                    |
+| Chrome/profile       | We launch a dedicated profile                       | You start Chrome; official server chooses the channel's default profile, all windows            |
+| Entry                | Existing CLI commands; `mcp --agent <execution-id>` | `mcp --mode attach [--channel stable]`                                                          |
+| Tools                | `browser_*` with owned tabs                         | Official tools unchanged: `list_pages`, `navigate_page`, `take_snapshot`, network/console, etc. |
+| Lane headers         | Explicit per-tab/domain policy                      | Unsupported; lane/header options are rejected                                                   |
+| Tab/pageId ownership | Execution leases                                    | No leases or multi-agent isolation; official page IDs are not ownership tokens                  |
+| Downloads            | Dedicated profile and agent/tab directories         | Official behavior in your daily profile; no independent profile/download isolation              |
+| Shutdown             | CLI `stop` closes our Chrome                        | EOF/Ctrl+C stops the MCP connection/subprocess; your Chrome stays open                          |
+
+### Attach to daily Chrome
+
+After installing/building this version:
+
+1. **You** start Google Chrome **144+** in the desired channel. Check/update its version at `chrome://settings/help`. For the complete official diagnostic toolset, use current Stable or newer as required above.
+2. Open `chrome://inspect/#remote-debugging` and enable **Remote Debugging**. Only the human user should change this setting.
+3. Start the attach server in one command (from a clone, substitute `node dist/cli.js`):
+
+   ```zsh
+   cdp-browser-mcp mcp --mode attach
+   ```
+
+4. **You** click **Allow / 允许** in Chrome's connection approval dialog. An agent must not click it for you. Chrome may request approval on each connection. No permanent/unattended approval is promised.
+
+For an MCP client, use:
+
+```json
+{
+  "mcpServers": {
+    "daily-chrome": {
+      "command": "cdp-browser-mcp",
+      "args": ["mcp", "--mode", "attach", "--channel", "stable"]
+    }
+  }
+}
+```
+
+`--channel` accepts `stable` (default), `beta`, `dev`, or `canary`. Match the Chrome you started. Set the client's startup timeout above the approval budget (for example, Codex `startup_timeout_sec = 60`). `--attach-timeout-ms 30000` is the default timeout for each upstream initialization/connection request; supported values are 1000–120000. After successful initialization, a `list_pages` probe must succeed before this adapter accepts MCP requests. Stderr reports `waiting-for-authorization` (connecting, **not yet authorized**), then `connected` only after the probe. This is a stdio MCP server: configure it in your client to operate pages, rather than typing CLI page commands into its terminal.
+
+If it fails, the error preserves the official reason and tells you to start/update Chrome, enable remote debugging at `chrome://inspect/#remote-debugging`, and allow the connection dialog, then retry. A timeout can mean approval is pending; it does not establish rejection. The official server can return the same error for stopped Chrome, old Chrome, disabled debugging, or refused approval, so this adapter does not invent a more precise diagnosis. There is no automatic retry or fallback browser. Version 1.13.0 has no `--autoConnectPort` flag; none is passed.
+
+Attach exposes the official tool schemas/results directly, including screenshots, snapshots, page actions, network and console tools. Use `list_pages` and the official `pageId` parameters to choose daily tabs. There is no second page-action backend. Attach rejects `--agent`, `--tab`, `--lane`, `--headers`, `--header-domains`, `--config`, `--state-dir`, `--executable-path`, `--headed` and `--headless` instead of implying isolated guarantees or launching settings. `launch`, `status`, `stop` and other CLI commands with `--mode attach` are rejected: the MCP client owns this foreground connection. Omitting `--mode` always selects isolated.
+
+**Trust boundary:** daily profile access includes its login state and all windows. It is not a tenant boundary. Official page-wide emulation headers, if used directly, have official semantics and no lane/domain policy. The adapter installs no header interception, worker policy, tab lease map, download routing or dedicated workspace/profile. Run one trusted operator; use isolated mode for cooperating agents and separate profiles/instances for different tenants. Native official tools can modify pages and write files with the user's permissions.
+
+The daily-browser authorization/UI flow remains a [manual acceptance item](docs/testing.md#attach-manual-acceptance); automated contract tests never approve dialogs or claim real-profile E2E coverage.
 
 ## Quick start
 
@@ -51,7 +101,7 @@ node dist/cli.js --version
 
 See [development](CONTRIBUTING.md) to install your own built archive as a command.
 
-## Connect your agent
+## Connect your agent (isolated)
 
 ### Skill with terminal access
 
@@ -92,7 +142,7 @@ args = ["mcp", "--agent", "codex"]
 
 Node.js and the prefix's `bin` directory must be on the MCP client's `PATH`. If the client does not inherit your shell PATH, use the installed command's absolute path. See [client configuration](docs/configuration.md#mcp-clients).
 
-## Log in once
+## Log in once (isolated)
 
 ```sh
 cdp-browser-mcp open https://example.com
@@ -107,7 +157,7 @@ cdp-browser-mcp status
 cdp-browser-mcp stop
 ```
 
-## Per-tab headers
+## Per-tab headers (isolated)
 
 Set headers for all tabs opened by an MCP client, with an explicit hostname allowlist:
 
@@ -144,7 +194,7 @@ Set headers for all tabs opened by an MCP client, with an explicit hostname allo
 
 For reusable presets, use [`--config` and `--lane`](docs/configuration.md#header-presets). No configuration file is needed for the default setup. Headers require `headerDomains` or `--header-domains`; requests to other hosts carry none of the configured lane keys.
 
-## Tools
+## Tools (isolated)
 
 | Tool                                   | Purpose                                                   |
 | -------------------------------------- | --------------------------------------------------------- |
@@ -158,7 +208,7 @@ For reusable presets, use [`--config` and `--lane`](docs/configuration.md#header
 
 Tool names follow Playwright MCP conventions. This project provides a subset, with tab ownership and shared-session behavior added.
 
-## Limits
+## Limits (isolated)
 
 **SharedWorker is disabled and ServiceWorker registration is rejected before document scripts run.** Those workers belong to an origin, so their background traffic cannot safely inherit a single tab's headers. Sites that require offline caches, push, or other ServiceWorker features may not work.
 

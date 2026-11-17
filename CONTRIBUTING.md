@@ -28,7 +28,7 @@ To install your source build as a command (the archive name follows `package.jso
 
 ```sh
 npm pack
-NPM_CONFIG_PREFIX="$HOME/.local" npm install --global --omit=dev ./cdp-browser-mcp-0.2.0.tgz
+NPM_CONFIG_PREFIX="$HOME/.local" npm install --global --omit=dev ./cdp-browser-mcp-0.3.0.tgz
 export PATH="$HOME/.local/bin:$PATH"
 cdp-browser-mcp --version
 ```
@@ -45,7 +45,7 @@ npm run test:headed
 npm pack
 ```
 
-Read [AGENTS.md](AGENTS.md) for ownership and error contracts, and [quality gates](docs/quality-gates.md) for gate coverage, size debt and evaluation limits. The pre-push hook runs deterministic checks; CI also runs the complete browser suite.
+Read [AGENTS.md](AGENTS.md) for ownership and error contracts, and [quality gates](docs/quality-gates.md) for gate coverage, size debt and evaluation limits. The pre-push hook runs deterministic checks, including Chrome-free attach contracts; CI also runs the complete isolated browser suite. Daily Chrome attach requires human approval and remains a separate manual acceptance checklist in [testing](docs/testing.md#attach-manual-acceptance).
 
 `npm run test:install` is included in `check`. It runs `sh -n` and exercises latest/tag downloads through a network stub with a real fixture tgz and real offline `npm install -g` into a temporary prefix. It verifies the bin symlink, version and MCP configuration, plus missing Release/tgz and unusable-prefix failures. No browser, registry access or extra test dependency is needed. Linux CI uses dash as `/bin/sh`; the same installer path runs on macOS. To exercise dash explicitly where installed, run `INSTALL_TEST_SHELL=/bin/dash npm run test:install`.
 
@@ -63,7 +63,7 @@ Before a separately authorized release, update `package.json` and its lockfile t
 npm ci
 npm run check
 npm pack
-tar -tzf cdp-browser-mcp-0.2.0.tgz
+tar -tzf cdp-browser-mcp-0.3.0.tgz
 ```
 
 Adding this workflow does not create a tag, Release or published package. Existing Releases are not backfilled automatically; a tag without the expected asset fails installation and the user may explicitly choose the clone/build method.

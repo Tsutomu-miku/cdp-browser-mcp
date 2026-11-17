@@ -6,7 +6,7 @@ npm test
 npm run test:headed
 ```
 
-Tests build the CLI, start an isolated Chrome profile with a random loopback CDP port, and use a local synthetic HTTP site. They do not access an existing browser profile or real account. Set `CHROME_PATH` to override the browser executable.
+Browser tests build the CLI, start an isolated Chrome profile with a random loopback CDP port, and use a local synthetic HTTP site. They do not access an existing browser profile or real account. Set `CHROME_PATH` to override the browser executable.
 
 Generated request logs and results go to the ignored `test-results/` directory. Running tests does not modify tracked validation records.
 
@@ -60,3 +60,25 @@ The initial pre-release run for 0.2.0 on Chrome 136/146 passed six of seven inte
 After Linux passes, macOS Stable runs the full suite in headed and headless modes, with the two macOS jobs serialized. All jobs download from Google's live Stable channel, print the actual version and retain request evidence.
 
 The Stable gate keeps all seven tests, deadlines and assertions intact. There is no retry, skip, platform/version branch or alternate browser implementation. The CDP download commands still omit `browserContextId` on every supported platform.
+
+## 0.3.0 attach contracts
+
+`npm run test:attach` (also included in `npm run check` and `npm test`) requires no Chrome. It checks all four channel arguments against the installed official 1.13.0 help, default isolated selection, explicit capability rejection, and real MCP stdio peers at the external subprocess boundary. Stopped/older Chrome, disabled debugging, denied/pending authorization and upstream death must fail without a connected claim, retain actionable guidance, and clean up the MCP subprocess. The older/denied scenarios are simulated official failures, not claims to detect those states on a real profile. Official schemas, annotations, structured results and operation errors must survive relay unchanged. Pending-approval EOF is tested with empty input and a buffered initialize request under a 120-second authorization budget; both must clean up within 5 seconds. A fragmented UTF-8 initialize request sent before approval must survive buffering.
+
+The existing seven isolated browser tests and their deadlines/assertions remain intact. No attach contract opens Chrome, reads daily tabs, enables remote debugging or approves a dialog.
+
+## Attach manual acceptance
+
+**Pending: the maintainer must authorize this on their own Mac Chrome. Automated contract success does not satisfy these items.** An agent must not operate the remote-debugging switch or the connection approval dialog.
+
+- [ ] Record the reviewed PR head, Chrome version/channel and macOS version.
+- [ ] With that channel stopped, run attach; verify failure and the startup/remote-debugging/Allow instructions. Also check Chrome below 144 if available; there is no supported fallback.
+- [ ] Start Chrome 144+ with remote debugging disabled: attach must fail without reporting connected.
+- [ ] The human enables `chrome://inspect/#remote-debugging`. Run `mcp --mode attach` from the MCP client, decline Chrome's dialog, and verify actionable failure.
+- [ ] Reconnect and leave the dialog pending: waiting status then bounded failure, never connected. Configure client startup timeout above the approval budget.
+- [ ] Reconnect and **the human clicks Allow**. Verify connected, `list_pages` sees existing tabs/windows, `take_snapshot` and a harmless page operation work, and existing login is reused without a dedicated profile.
+- [ ] Verify screenshot, network and console tools through official schemas; if available, repeat with `--channel beta` (or another installed channel).
+- [ ] Close the MCP client or send Ctrl+C: its subprocess ends, daily Chrome and its existing tabs remain open. Reconnect and verify Chrome's approval behavior.
+- [ ] Confirm attach rejects lane/header, agent/tab lease, launch/profile options and provides no independent download isolation. Do not use a sensitive download for acceptance.
+
+Until these checks are recorded, daily-profile attach E2E remains **not performed / awaiting human authorization**. Isolated synthetic browser results and attach protocol fixtures are reported separately.

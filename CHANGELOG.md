@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Add explicit `mcp --mode attach` alongside the unchanged default isolated mode, implementing ADR 0001 through pinned official chrome-devtools-mcp 1.13.0 `--autoConnect` and configurable stable/beta/dev/canary channels.
+- Expose official page/snapshot/network/console and diagnostic tools directly. Daily profile mode provides no lane headers, tab/pageId leases or independent download isolation; unsupported CLI options fail explicitly.
+- Verify attachment with `list_pages` before accepting requests; report waiting/connected status and actionable Chrome 144+, remote-debugging and human approval instructions. Bound pending approval, propagate failures and close only the MCP subprocess on exit.
+- Add Chrome-free argument/failure/stdio lifecycle contracts and document mode comparison, setup and required manual daily-browser authorization acceptance. This version change does not create a tag, Release or npm publication.
+
 ## 0.2.0
 
 - Require Google Chrome current Stable or newer, matching the official diagnostic baseline; Linux CI follows Google's Stable channel and records its actual version instead of pinning unsupported Chrome 136/146.
