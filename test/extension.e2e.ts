@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { mkdtemp, cp, readFile, writeFile, mkdir, rm } from "node:fs/promises";
+import { mkdtemp, cp, readFile, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { generateKeyPairSync, createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
@@ -45,14 +45,30 @@ await execute(process.execPath, [
   "--browser-user-data-dir",
   profile,
 ]);
+let loginRequests = 0;
 const site = createServer((request, response) => {
+  if (request.url === "/login") {
+    loginRequests++;
+    response.setHeader(
+      "Set-Cookie",
+      "session=extension-synthetic; HttpOnly; SameSite=Lax; Path=/",
+    );
+    response.writeHead(302, { Location: "/" }).end();
+    return;
+  }
+  if (!request.headers.cookie?.includes("session=extension-synthetic")) {
+    response
+      .writeHead(401, { "Content-Type": "text/html" })
+      .end("<title>Sign in required</title><h1>Sign in required</h1>");
+    return;
+  }
   if (request.url === "/data") {
     response.end("synthetic-network");
     return;
   }
   response.setHeader("Content-Type", "text/html");
   response.end(
-    `<!doctype html><title>Extension synthetic signed-in page</title><h1>Signed in as Synthetic User</h1><label>Message <input id="message"></label><div id="canvas" style="width:400px;height:200px;background:steelblue;padding:20px"><button>Canvas start</button><button style="margin-left:150px">Canvas end</button></div><p id="result"></p><script>localStorage.identity='synthetic-user'; console.log('synthetic-console'); fetch('/data'); document.querySelector('#canvas').addEventListener('pointerup',()=>document.querySelector('#result').textContent='drag-visible');</script>`,
+    `<!doctype html><title>Extension synthetic signed-in page</title><h1>Signed in as Synthetic User</h1><label>Message <input id="message"></label><div id="canvas" style="width:400px;height:200px;background:steelblue;padding:20px"><button>Canvas start</button><button style="margin-left:150px">Canvas end</button></div><p id="result"></p><script>console.log('synthetic-console'); fetch('/data'); document.querySelector('#canvas').addEventListener('pointerup',()=>document.querySelector('#result').textContent='drag-visible');</script>`,
   );
 });
 await new Promise<void>((done) => site.listen(0, "127.0.0.1", done));
@@ -88,7 +104,13 @@ try {
     .waitFor();
   await popup.screenshot({ path: "test-results/extension-popup.png" });
   const page = context.pages()[0];
-  await page.goto(base);
+  assert.equal(
+    (await fetch(base)).status,
+    401,
+    "A fresh client must see the login wall",
+  );
+  await page.goto(base + "/login");
+  await page.evaluate(() => localStorage.setItem("identity", "synthetic-user"));
   await page.screenshot({ path: "test-results/extension-before.png" });
   for (let i = 0; i < 600; i++) {
     try {
@@ -250,6 +272,11 @@ try {
   );
   assert.equal(page.isClosed(), false);
   assert.equal(new URL(page.url()).origin, base);
+  assert.equal(
+    loginRequests,
+    1,
+    "MCP must reuse the existing authenticated browser instead of signing in again",
+  );
   await mkdir("test-results", { recursive: true });
   await writeFile(
     "test-results/extension-e2e.json",
@@ -263,6 +290,8 @@ try {
         concurrentClients: true,
         sharedHost: true,
         popupConsentAndPause: true,
+        loginWallVerified: true,
+        loginRequests,
       },
       null,
       2,
