@@ -1,13 +1,48 @@
 ---
 name: cdp-browser-mcp
-description: Run browser end-to-end checks from a terminal using shared login state, execution-owned tabs, and per-tab request headers. Use for parallel agent browser tasks without a browser extension or preconfigured MCP server.
+description: Run browser checks with shared login, execution-owned tabs and per-tab headers for parallel isolated tasks. Also attach to the human user's running Chrome current tabs (--mode attach), reusing their login for attended visual inspection and page operations.
 ---
 
 # CDP Browser MCP
 
-Use the terminal CLI to navigate, inspect, fill, click, and extract from a dedicated Chrome browser. Multiple tasks share cookies and same-origin storage while owning separate tabs, headers, leases, and downloads.
+Choose the mode before operating a browser. The default isolated mode uses a dedicated Chrome through the terminal CLI or MCP. Attach mode uses an MCP client to operate the human user's daily Chrome through official tools.
 
-## Start an execution
+## 选择模式（isolated vs attach）
+
+- **isolated (default):** use for parallel tasks/agents, CI and unattended checks. Each execution owns tabs, lane headers and downloads in the dedicated profile; login state is shared. Omitting `--mode` always selects isolated.
+- **attach:** use only when the task needs the human user's current daily Chrome tabs and existing login, with the user present for approval and visual inspection. The daily profile is not a tenant or account isolation boundary. It exposes all windows of the selected channel's default profile.
+
+Node.js 22.12+ and the installed `cdp-browser-mcp` command are required for both modes. Check `cdp-browser-mcp --version` before use; attach requires 0.3.0+. If absent, follow the repository README installer; never install the unrelated npmjs namesake. The isolated instructions below do not apply to attach.
+
+## Attach to daily Chrome
+
+1. Ask the user to start Google Chrome **144+** in the desired channel; check/update at `chrome://settings/help`. Use current Stable or newer for the complete official diagnostic toolset.
+2. The user must open `chrome://inspect/#remote-debugging` and enable **Remote Debugging**.
+3. Configure an MCP client with the installed command (use an absolute path if its PATH differs):
+
+   ```json
+   {
+     "mcpServers": {
+       "cdp-browser-attach": {
+         "command": "cdp-browser-mcp",
+         "args": ["mcp", "--mode", "attach", "--channel", "stable"]
+       }
+     }
+   }
+   ```
+
+4. On connection, the user must click **Allow / 允许** in Chrome's approval dialog. An agent must never click it on their behalf. Chrome may request approval on each connection; no unattended approval is promised.
+5. After connection, call `list_pages` and use the official `pageId` parameters to select the intended daily tab. Confirm the intended tab with the user; the MCP selected page is not proof of the human's active tab. Use `select_page` with `bringToFront: true` when an attended operation should be visible. Read its snapshot before acting, then verify the visible result. Attach directly exposes official page actions, snapshots, screenshots, network and console tools; it does not use isolated `browser_*` wrappers or CLI page commands.
+
+`--channel` accepts `stable` (default), `beta`, `dev` or `canary`; match the user's running Chrome. Stderr `waiting-for-authorization` means not yet authorized; `connected` is reported only after a successful `list_pages` probe. The default upstream connection/approval request timeout is 30000 ms; `--attach-timeout-ms` accepts 1000–120000. Set the MCP client's startup timeout above the approval budget (for example, 60 seconds for the default budget).
+
+If connection fails, preserve the official error and ask the user to check Chrome is running, its version, the remote-debugging switch and the approval dialog in that order. Stopped Chrome, an old version, disabled remote debugging and refused approval may produce the same upstream error. A timeout may mean approval is still pending rather than refused. Do not infer a more precise cause, automatically retry or fall back to another browser. If the error specifically reports `EPERM` reading Chrome's `DevToolsActivePort` on macOS, report that file-access failure and ask the user to check the agent host's privacy permissions; do not change permissions or restart its host automatically.
+
+Attach supports only `mcp --mode attach`. `launch`, `status`, `stop` and all other CLI commands with `--mode attach` are rejected. It also rejects `--agent`, `--tab`, `--lane`, `--headers`, `--header-domains`, `--config`, `--state-dir`, `--executable-path`, `--headed` and `--headless`. There are no lane headers, tab/pageId leases or isolated downloads; official page IDs do not grant ownership. Do not run cooperating agents or different accounts/tenants as though the daily profile isolated them. Official tools can modify daily tabs and write files with the user's permissions.
+
+On completion, disconnect the MCP client (stdin EOF/Ctrl+C); only the relay and official subprocess stop, and the user's Chrome stays open. Do not run isolated `reclaim` or `stop` for attach cleanup. Real daily-browser approval and visual inspection require the human user; automated contracts do not substitute for this acceptance.
+
+## Start an execution (isolated)
 
 Check `node --version`, `npm --version`, and `command -v cdp-browser-mcp`; Node.js 22.12+ and Google Chrome current Stable or newer are required, including Linux headless=new. This matches official chrome-devtools-mcp requirements; older Chrome and other Chromium browsers are outside the supported baseline. Report a missing system dependency rather than installing it automatically. On macOS use the terminal's `/bin/zsh` shell.
 
@@ -35,7 +70,7 @@ cdp-browser-mcp open --agent <execution-id> --header-domains '["example.com","*.
 
 Replace the example allowlist with the task's explicit trusted hostnames; use the same `--config` when sharing a configured service. Header tabs are rejected when the service has no allowlist. Use the task's actual header values. Do not invent an environment or place credentials in headers. Header changes require opening a new tab; they do not mutate an existing tab. All calls that share a login must use the same state directory. If `--config` or `--state-dir` is supplied by the user, keep it on every call. Do not point this tool at a daily Chrome profile or read its internal identity/profile files.
 
-## Interact and verify
+## Interact and verify (isolated)
 
 ```zsh
 cdp-browser-mcp navigate https://example.com --agent <execution-id> --tab <tab-id>
@@ -56,7 +91,7 @@ cdp-browser-mcp downloads --agent <execution-id> --json
 
 Execution output is already captured by the calling agent's terminal/tool log. Report the observed assertion and any blocker in that conversation; no UI plugin is required. `downloads` lists completed files attributed to this execution. Do not inspect another task's downloads or global runtime logs for routine verification.
 
-## Finish and handle failures
+## Finish and handle failures (isolated)
 
 Always attempt this execution's cleanup, including after a failed assertion:
 
@@ -68,13 +103,13 @@ This closes only its tabs and revokes its session. Do not use global `stop` or `
 
 If a tab expires or the browser restarts, its old ID and refs are invalid. List owned tabs and deliberately create a replacement before resuming. Do not silently repeat a click, submission, or other operation with an uncertain result; inspect the current state first. Missing login requires the user to log in once in the dedicated window, not copying credentials from another browser.
 
-## Isolation boundaries
+## Isolation boundaries (isolated)
 
 - Cookies and same-origin storage are shared deliberately. Logging out affects all tasks. This is tab ownership for cooperating agents, not an adversarial security sandbox.
 - Per-tab headers cover HTTP(S), including iframes, dedicated/nested workers, fetch, XHR, beacon, and downloads. Only destinations in `headerDomains` receive lane headers, including redirects and worker requests. Other hostnames receive none of the configured lane keys.
 - SharedWorker is disabled and ServiceWorker registration is rejected before document scripts run. Do not claim those features passed; report a dependency on them as a limitation. WebSocket and WebTransport header isolation is outside the guarantee.
 - Keep the browser/CDP endpoint on loopback. Remote operation requires a user-configured authenticated tunnel; do not expose a debugging port publicly.
 
-## Official diagnostics
+## Official diagnostics (isolated)
 
-The browser service attaches a controlled official `chrome-devtools-mcp@1.13.0` subprocess to its own Chrome. Use `devtools --tool take_screenshot --arguments '{}' --agent <execution-id> --tab <tab-id> --json` for screenshots, or the page-scoped diagnostic names documented in `docs/configuration.md`. `browser_devtools` provides the same entry in MCP. Never attach a second agent-facing official server directly: it bypasses leases and header policy. Snapshots retain `[ref=...]` syntax but refs are upstream UIDs; refresh them after navigation or an upgrade.
+The browser service attaches a controlled official `chrome-devtools-mcp@1.13.0` subprocess to its own Chrome. Use `devtools --tool take_screenshot --arguments '{}' --agent <execution-id> --tab <tab-id> --json` for screenshots, or the page-scoped diagnostic names documented in `docs/configuration.md`. `browser_devtools` provides the same entry in MCP. Never connect a second agent-facing official server directly to this dedicated isolated browser: it bypasses leases and header policy. The separate attach mode above targets the human-owned daily Chrome and provides none of these guarantees. Snapshots retain `[ref=...]` syntax but refs are upstream UIDs; refresh them after navigation or an upgrade.
