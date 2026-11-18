@@ -1,0 +1,57 @@
+name: Extension bridge
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-profile:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install public dependencies and current Stable Chrome for Testing
+        shell: python
+        run: |
+          import json, os, pathlib, subprocess, urllib.request, zipfile
+          subprocess.run(["npm", "ci", "--registry=https://registry.npmjs.org"], check=True)
+          subprocess.run(["npx", "playwright", "install-deps", "chromium"], check=True)
+          url = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json"
+          with urllib.request.urlopen(url) as response:
+              stable = json.load(response)["channels"]["Stable"]
+          download = next(item["url"] for item in stable["downloads"]["chrome"] if item["platform"] == "linux64")
+          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "extension-chrome"
+          root.mkdir()
+          archive = root / "chrome.zip"
+          urllib.request.urlretrieve(download, archive)
+          with zipfile.ZipFile(archive) as package:
+              package.extractall(root)
+              for item in package.infolist():
+                  mode = item.external_attr >> 16
+                  if mode:
+                      (root / item.filename).chmod(mode)
+          chrome = root / "chrome-linux64" / "chrome"
+          print(subprocess.check_output([str(chrome), "--version"], text=True))
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"EXTENSION_CHROME_PATH={chrome}\n")
+      - name: Real MV3, native host, official tools and two MCP peers
+        shell: python
+        run: |
+          import subprocess
+          subprocess.run(["npm", "run", "test:extension:e2e"], check=True)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extension-synthetic-profile
+          path: test-results/extension-*
+          retention-days: 7
+          if-no-files-found: warn

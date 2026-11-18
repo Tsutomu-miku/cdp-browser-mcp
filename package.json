@@ -1,6 +1,6 @@
 {
   "name": "cdp-browser-mcp",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,10 +9,12 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
     "chrome-devtools-mcp": "1.13.0",
+    "ws": "8.23.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/ws": "8.18.1",
     "dependency-cruiser": "18.7.2",
     "eslint": "10.15.0",
     "playwright": "1.65.1",
@@ -24,7 +26,8 @@
   "description": "Shared Google Chrome (current Stable or newer) sessions with owned tabs and official DevTools MCP",
   "license": "MIT",
   "bin": {
-    "cdp-browser-mcp": "dist/cli.js"
+    "cdp-browser-mcp": "dist/cli.js",
+    "cdp-browser-mcp-extension-setup": "dist/extension/setup.js"
   },
   "files": [
     "dist",
@@ -32,10 +35,12 @@
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "docs/*.md",
+    "docs/adr/*.md",
     "examples",
     "skills",
     "NOTICE",
-    "third_party"
+    "third_party",
+    "extension"
   ],
   "scripts": {
     "build": "tsc",
@@ -44,17 +49,19 @@
     "spike": "node spike/probe.mjs",
     "test:headed": "STEWARD_HEADED=1 npm test",
     "pretest": "npm run build",
-    "format:check": "prettier --check src test tools quality .github .githooks/pre-push AGENTS.md eslint.config.mjs dependency-cruiser.cjs tsconfig.json spike examples skills README.md docs CONTRIBUTING.md package.json",
+    "format:check": "prettier --check src extension test tools quality .github .githooks/pre-push AGENTS.md eslint.config.mjs dependency-cruiser.cjs tsconfig.json spike examples skills README.md docs CONTRIBUTING.md package.json CHROMEWEBSTORE.md",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src --max-warnings 3",
+    "lint": "eslint src extension --max-warnings 3",
     "depcruise": "depcruise --config dependency-cruiser.cjs src --output-type err",
     "arch": "npm run depcruise",
     "test:quality": "node --test test/policy-rules.test.mjs test/dependency-policy.test.mjs test/gate-config.test.mjs",
     "evals": "node tools/run-evals.mjs",
     "hooks:install": "node tools/install-hooks.mjs",
-    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run test:install && npm run test:attach && npm run evals && npm run format:check",
+    "check": "npm run build && npm run typecheck && npm run lint && npm run arch && npm run test:quality && npm run test:install && npm run test:attach && npm run test:extension && npm run evals && npm run format:check",
     "test:install": "node --test test/install.test.mjs",
-    "test:attach": "node --import tsx --test test/attach.test.ts"
+    "test:attach": "node --import tsx --test test/attach.test.ts",
+    "test:extension": "node --import tsx --test test/extension-contract.test.ts test/extension-routing.test.ts",
+    "test:extension:e2e": "node --import tsx test/extension.e2e.ts"
   },
   "author": {
     "name": "Tsutomu"

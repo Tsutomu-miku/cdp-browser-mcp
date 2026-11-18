@@ -3,6 +3,8 @@
 - 日期：2026-11-15
 - 状态：已接受（Accepted，2026-11-15，随 PR #5 合入 main）。
 
+> 扩展方向由 [ADR 0002](0002-extension-daily-chrome.md) 的 v0.4.0 实现提案取代；本文保留历史决策及 autoConnect 授权边界。
+
 ## 背景
 
 日常浏览器 PoC 的目标是复用用户正在使用的 Chrome profile 登录态，避免在专用自动化 profile 中重新登录。从 Chrome 136 起，默认 Chrome 数据目录不再接受 `--remote-debugging-port` / `--remote-debugging-pipe`，使用这些开关必须指定非默认 `--user-data-dir`。这个限制是探索 MV3 扩展加 native host 路线的动机，见 [Chrome 官方说明](https://developer.chrome.com/blog/remote-debugging-port)。

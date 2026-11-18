@@ -1,6 +1,6 @@
 # Architecture
 
-`0.3.0` is an MIT orchestration layer over the unmodified, Apache-2.0 [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) executable. Its license and attribution ship in [NOTICE](../NOTICE) and [third_party](../third_party/chrome-devtools-mcp-LICENSE). Playwright is used only by tests and the historical probe.
+`0.4.0` is an MIT orchestration layer over the unmodified, Apache-2.0 [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) executable. Its license and attribution ship in [NOTICE](../NOTICE) and [third_party](../third_party/chrome-devtools-mcp-LICENSE). Playwright is used only by tests and the historical probe.
 
 ```mermaid
 flowchart LR
@@ -79,7 +79,27 @@ flowchart LR
 
 `attach/server.ts` owns one official subprocess and a transparent tools/list + tools/call relay. Official schemas, page IDs, results, images and tool errors pass through without our compatibility action adapter. Request cancellation is forwarded. Stderr reports waiting for authorization before attachment and connected after the probe. Bounded startup failure or official subprocess loss terminates the session; EOF/signals close the relay/subprocess, including during pending approval. Stdin is consumed before the upstream handshake, with its original bytes buffered within the SDK input budget until the official attachment succeeds. It never calls `Browser.close`, starts/restarts Chrome, removes tabs or retries failed actions. Official upstream disconnects from a connected browser on shutdown, leaving the daily Chrome open.
 
-Attach constructs no `Steward`, `OwnedTabs`, `TabPolicy`, `Downloads` or independent CDP client, and writes no state/profile directory. Lane headers, tab/pageId leases and profile/download isolation are unavailable; requesting isolated CLI options is an error. Official tools retain browser-wide and page-wide powers in the default profile and all its windows. That profile is not a tenant boundary. No custom extension, profile discovery, old-browser fallback or second action/download backend is implemented. Remote-debugging enablement and each Chrome approval remain the human's responsibility.
+Attach constructs no `Steward`, `OwnedTabs`, `TabPolicy`, `Downloads` or independent CDP client, and writes no state/profile directory. Lane headers, tab/pageId leases and profile/download isolation are unavailable; requesting isolated CLI options is an error. Official tools retain browser-wide and page-wide powers in the default profile and all its windows. That profile is not a tenant boundary. Within attach mode, no custom extension, profile discovery, old-browser fallback or second action/download backend is implemented. Remote-debugging enablement and each Chrome approval remain the human's responsibility.
+
+## Extension daily Chrome
+
+[ADR 0002](adr/0002-extension-daily-chrome.md) adds explicit extension access without changing either existing mode. See [installation and boundaries](extension.md).
+
+```mermaid
+flowchart LR
+  Clients[Foreground MCP clients] -->|loopback + MCP token| Host[Native host / shared relay]
+  Host --> Official[One persistent official MCP subprocess]
+  Official -->|private CDP credential| Host
+  Host -->|Native Messaging| MV3[Extension debugger bridge]
+  Human[Human popup origin approval / Pause] --> MV3
+  MV3 -->|chrome.debugger| Tabs[Approved daily Chrome tabs]
+```
+
+`extension/server.ts` owns only a foreground stdio session and a lazy `RelayClient`; initialization never probes Chrome. `extension/host.ts` is launched by Chrome with exact extension-origin validation. It reserves a private installation state, owns one relay and official subprocess, and removes only its own discovery file at shutdown. `extension/relay.ts` separates authenticated MCP peers from the private official CDP connection. `extension/tools.ts` owns page claims and the core official-tool allowlist. It uses the existing installed executable resolver, supported `--wsEndpoint`/`--wsHeaders` and `--pageIdRouting`.
+
+The MV3 bridge stores consent and target/session identities in Chrome storage. Its `Targets` projection supplies logical tab containers expected by Puppeteer while actual page/child commands execute through `chrome.debugger`. There is one official CDP client, so competing agent connection IDs never share raw CDP sessions. Child session IDs are namespaced by tab. Unknown commands and unsupported browser-wide domains fail explicitly. There is no replacement DOM action backend, isolated Steward, lane policy, profile manager or download manager in this mode.
+
+Native Messaging is the browser-to-host transport; no remote-debugging port or protected profile discovery is needed. Live port/serialization handles are disposable. Transport loss invalidates the generation and never replays mutations. Chrome Cancel pauses future access. Consent changes also stop the official collector and disconnect peers so cached network/console/snapshot data cannot remain accessible; clients reconnect explicitly. The extension popup is the sole consent writer. Audit metadata is bounded and excludes sensitive payloads. Same-user processes remain trusted, and origin filters/page claims are coordination controls rather than a security sandbox.
 
 ## Trust boundary
 

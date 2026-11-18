@@ -29,7 +29,7 @@ export default [
     ],
   },
   {
-    files: ["src/**/*.ts"],
+    files: ["src/**/*.ts", "extension/**/*.js"],
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: "latest",

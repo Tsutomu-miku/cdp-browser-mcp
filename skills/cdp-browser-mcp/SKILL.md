@@ -1,18 +1,19 @@
 ---
 name: cdp-browser-mcp
-description: Run browser checks with shared login, execution-owned tabs and per-tab headers for parallel isolated tasks. Also attach to the human user's running Chrome current tabs (--mode attach), reusing their login for attended visual inspection and page operations.
+description: Use extension mode (--mode extension) for routine approved daily Chrome tabs without repeated remote-debugging approval. Run browser checks with shared login, execution-owned tabs and per-tab headers for parallel isolated tasks. Also attach to the human user's running Chrome current tabs (--mode attach), reusing their login for attended visual inspection and page operations.
 ---
 
 # CDP Browser MCP
 
-Choose the mode before operating a browser. The default isolated mode uses a dedicated Chrome through the terminal CLI or MCP. Attach mode uses an MCP client to operate the human user's daily Chrome through official tools.
+Choose the mode before operating a browser. The default isolated mode uses a dedicated Chrome through the terminal CLI or MCP. Extension mode reuses approved daily tabs through a persistent extension/native bridge; attended attach mode uses official autoConnect.
 
-## 选择模式（isolated vs attach）
+## 选择模式（isolated vs attach vs extension）
 
 - **isolated (default):** use for parallel tasks/agents, CI and unattended checks. Each execution owns tabs, lane headers and downloads in the dedicated profile; login state is shared. Omitting `--mode` always selects isolated.
+- **extension (0.4.0+):** use for routine daily Chrome tabs after human extension installation and exact-origin consent. It reuses a persistent official backend without per-session remote-debugging Allow; Chrome's debugging banner may remain.
 - **attach:** use only when the task needs the human user's current daily Chrome tabs and existing login, with the user present for approval and visual inspection. The daily profile is not a tenant or account isolation boundary. It exposes all windows of the selected channel's default profile.
 
-Node.js 22.12+ and the installed `cdp-browser-mcp` command are required for both modes. Check `cdp-browser-mcp --version` before use; attach requires 0.3.0+. If absent, follow the repository README installer; never install the unrelated npmjs namesake. The isolated instructions below do not apply to attach.
+Node.js 22.12+ and the installed `cdp-browser-mcp` command are required for all modes. Check `cdp-browser-mcp --version` before use; attach requires 0.3.0+. If absent, follow the repository README installer; never install the unrelated npmjs namesake. The isolated instructions below do not apply to attach or extension.
 
 ## Attach to daily Chrome
 
@@ -41,6 +42,14 @@ If connection fails, preserve the official error and ask the user to check Chrom
 Attach supports only `mcp --mode attach`. `launch`, `status`, `stop` and all other CLI commands with `--mode attach` are rejected. It also rejects `--agent`, `--tab`, `--lane`, `--headers`, `--header-domains`, `--config`, `--state-dir`, `--executable-path`, `--headed` and `--headless`. There are no lane headers, tab/pageId leases or isolated downloads; official page IDs do not grant ownership. Do not run cooperating agents or different accounts/tenants as though the daily profile isolated them. Official tools can modify daily tabs and write files with the user's permissions.
 
 On completion, disconnect the MCP client (stdin EOF/Ctrl+C); only the relay and official subprocess stop, and the user's Chrome stays open. Do not run isolated `reclaim` or `stop` for attach cleanup. Real daily-browser approval and visual inspection require the human user; automated contracts do not substitute for this acceptance.
+
+## Daily Chrome extension (0.4.0)
+
+For routine daily Chrome work without repeated remote-debugging Allow, prefer an explicitly user-selected `extension` MCP entry after its one-time installation. Follow [the installation guide](../../docs/extension.md); do not install/load extensions, approve sites, change policies or register MCP entries automatically. Example args: `["mcp", "--mode", "extension", "--state-dir", "/absolute/path/to/extension-state"]`. Use the exact state directory printed by the native host installer, separate from isolated state. MCP startup does not connect to Chrome or start a browser.
+
+Call `list_pages`, then pass explicit `pageId` to the official page tools. Only approved origins appear. The first operating MCP client claims a page; use `extension_release_page` or disconnect to release it, without closing the tab. On another client's claim error, do not bypass it with direct CDP. The popup's Pause and Chrome Cancel stop access; never automatically resume against the user's choice. Snapshot/screenshot, page actions, network and console are provided by one persistent official backend. Tab creation/closing, browser-wide diagnostics, cookie export, uploads, downloads and emulation are unavailable. No lane headers or account isolation is implied.
+
+Remote Debugging need not be enabled, and no per-session autoConnect approval is used. Chrome's debugging banner can still appear. Installation/initial origin consent and actual daily-profile visible-operation acceptance require the human. Missing native host or relay is an actionable installation failure, never a reason to launch isolated or autoConnect as fallback. Transport loss/timeout does not justify replaying actions. Page content/evaluation has the power of the approved signed-in page; origin filtering is not a sandbox.
 
 ## Start an execution (isolated)
 

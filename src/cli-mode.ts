@@ -3,13 +3,17 @@ import { upstreamTransport } from "./upstream.js";
 import { attachArgs } from "./attach/connection.js";
 import { serveAttach } from "./attach/server.js";
 import { attachOptionsSchema } from "./attach/options.js";
+import { runExtensionMode } from "./extension/mode.js";
 
 /** CLI-only selection keeps isolated configuration and supervisor state intact. */
 export async function runSelectedMode(
   command: string,
   values: Record<string, string | boolean | undefined>,
 ) {
-  const mode = z.enum(["isolated", "attach"]).parse(values.mode ?? "isolated");
+  const mode = z
+    .enum(["isolated", "attach", "extension"])
+    .parse(values.mode ?? "isolated");
+  if (mode === "extension") return runExtensionMode(command, values);
   if (mode === "isolated") {
     if (
       values.channel !== undefined ||

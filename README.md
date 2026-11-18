@@ -1,6 +1,6 @@
 # CDP Browser MCP
 
-Use a dedicated shared Chrome for multiple AI agents, or attach to your daily Chrome with its existing login. The default remains **isolated**. The following ownership/header guarantees apply to isolated mode.
+Use a dedicated shared Chrome for multiple AI agents, or an extension to work in approved daily Chrome tabs with their existing login. The default remains **isolated**. The following ownership/header guarantees apply to isolated mode.
 
 - **Shared login:** cookies and browser storage persist in a dedicated Chrome profile.
 - **Independent tabs:** each agent owns its tabs, actions, leases, and downloads.
@@ -15,22 +15,23 @@ Official diagnostics use recent CDP commands, including Lighthouse's `Network.em
 
 **0.3.0:** depends on [chrome-devtools-mcp 1.13.0](https://github.com/ChromeDevTools/chrome-devtools-mcp) (Apache-2.0). Isolated mode spawns its MCP executable with `--browserUrl` pointing at our loopback Chrome. Attach mode uses `--autoConnect --channel stable` to connect to Chrome started by you. This project's orchestration remains MIT; see [NOTICE](NOTICE) and the [upstream license](third_party/chrome-devtools-mcp-LICENSE).
 
-The isolated orchestration layer owns Chrome/profile lifecycle, agent↔tab/pageId leases, domain-filtered lane headers, and downloads. Playwright is a test-only dependency. Per [ADR 0001](docs/adr/0001-reject-self-built-extension-use-official-autoconnect.md), the extension PoC was closed and remains historical; daily Chrome uses only the official autoConnect path.
+The isolated orchestration layer owns Chrome/profile lifecycle, agent↔tab/pageId leases, domain-filtered lane headers, and downloads. Playwright is a test-only dependency. Version 0.4.0 adds an extension/native bridge for daily use without repeated remote-debugging approvals; [ADR 0002](docs/adr/0002-extension-daily-chrome.md) supersedes ADR 0001's extension decision. Existing attended autoConnect remains available.
 
-## Two modes
+## Choose a mode
 
-The packaged [agent skill](skills/cdp-browser-mcp/SKILL.md#选择模式isolated-vs-attach) covers both modes and their selection criteria.
+The packaged [agent skill](skills/cdp-browser-mcp/SKILL.md) covers mode selection.
 
-|                      | `isolated` (default)                                | `attach` (new in 0.3.0)                                                                         |
-| -------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Best for             | Multiple lanes/agents, CI                           | Daily tabs, existing login, human inspection                                                    |
-| Chrome/profile       | We launch a dedicated profile                       | You start Chrome; official server chooses the channel's default profile, all windows            |
-| Entry                | Existing CLI commands; `mcp --agent <execution-id>` | `mcp --mode attach [--channel stable]`                                                          |
-| Tools                | `browser_*` with owned tabs                         | Official tools unchanged: `list_pages`, `navigate_page`, `take_snapshot`, network/console, etc. |
-| Lane headers         | Explicit per-tab/domain policy                      | Unsupported; lane/header options are rejected                                                   |
-| Tab/pageId ownership | Execution leases                                    | No leases or multi-agent isolation; official page IDs are not ownership tokens                  |
-| Downloads            | Dedicated profile and agent/tab directories         | Official behavior in your daily profile; no independent profile/download isolation              |
-| Shutdown             | CLI `stop` closes our Chrome                        | EOF/Ctrl+C stops the MCP connection/subprocess; your Chrome stays open                          |
+| Mode                 | Best for                                      | Entry and guarantees                                                                                                                                               |
+| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `isolated` (default) | Parallel tasks, lanes, CI                     | `mcp --agent <execution-id>`; owned dedicated Chrome, leases, headers and downloads                                                                                |
+| `extension` (0.4.0)  | Routine work in approved signed-in daily tabs | `mcp --mode extension --state-dir <native-host-state>`; one-time extension/site setup, shared backend and explicit page claims; no repeated remote-debugging Allow |
+| `attach` (0.3.0)     | Explicit attended remote-debugging sessions   | `mcp --mode attach --channel stable`; human starts Chrome/enables debugging and approves each new connection; no leases or download isolation                      |
+
+### Extension for daily use
+
+Follow the [one-time installation and consent steps](docs/extension.md). MCP initialization does not connect to Chrome. New clients reuse the extension's native host and official backend; use `list_pages` and explicit `pageId`, and release a page with `extension_release_page` or disconnect the client. Chrome and daily tabs remain open. The popup provides **Pause all access**.
+
+Chrome's debugger banner may still appear; there is no silent flag or enterprise-policy modification. Installation and initial site approval require the human, and managed devices may require IT approval. The extension exposes core page/snapshot/screenshot/network/console tools, not the complete browser-wide diagnostic toolset. Daily profiles do not provide account/tenant, lane-header or download isolation. No installer edits MCP client configuration.
 
 ### Attach to daily Chrome
 
@@ -87,7 +88,7 @@ export PATH="$HOME/.local/bin:$PATH"
 cdp-browser-mcp --version
 ```
 
-`v0.2.0` is an example: choose a published tag that contains `cdp-browser-mcp-<version>.tgz`. The installer downloads that prebuilt archive, uses npm as a local installer for its three runtime dependencies and bin link, checks `--version`, and prints MCP configuration. It never runs sudo. Missing Release assets fail explicitly and do not trigger a source build. See [installer options and permissions](docs/deployment.md#installation).
+`v0.2.0` is an example: choose a published tag that contains `cdp-browser-mcp-<version>.tgz`. The installer downloads that prebuilt archive, uses npm as a local installer for its runtime dependencies and bin link, checks `--version`, and prints MCP configuration. It never runs sudo. Missing Release assets fail explicitly and do not trigger a source build. See [installer options and permissions](docs/deployment.md#installation).
 
 **This project does not publish to npmjs. The public npm package with the same name is unrelated.** Do not install this project by registry name (`npm install -g cdp-browser-mcp` or `npx cdp-browser-mcp`). Runtime dependencies are still fetched from your configured npm registry.
 

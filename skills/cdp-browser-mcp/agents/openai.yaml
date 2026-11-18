@@ -1,4 +1,4 @@
 interface:
   display_name: "CDP Browser MCP"
-  short_description: "Use isolated browser tabs or attach to daily Chrome"
-  default_prompt: "Use $cdp-browser-mcp to choose isolated tabs or attended daily-Chrome attach for this browser flow and report the observed result."
+  short_description: "Use isolated tabs or extension access to daily Chrome"
+  default_prompt: "Use $cdp-browser-mcp to choose isolated tabs, approved daily-Chrome extension access, or attended autoConnect for this browser flow and report the observed result."

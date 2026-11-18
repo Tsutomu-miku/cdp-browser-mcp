@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light dark;
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+}
+body {
+  width: 24rem;
+  margin: 0;
+  padding: 1rem;
+}
+h1 {
+  font-size: 1.3rem;
+  margin-block-start: 0;
+}
+label {
+  display: block;
+  font-weight: 600;
+  margin-block-start: 1rem;
+}
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  margin-block: 0.3rem 1rem;
+  border: 1px solid #767676;
+}
+button {
+  min-height: 3rem;
+  padding: 0.6rem;
+  font: inherit;
+  margin-block-end: 0.5rem;
+}
+:focus-visible {
+  outline: 3px solid #4682ff;
+  outline-offset: 2px;
+}
+#origin-help {
+  margin-block: 0.25rem;
+  font-size: 0.875rem;
+}

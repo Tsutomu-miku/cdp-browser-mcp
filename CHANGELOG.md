@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Add explicit extension mode for approved daily Chrome tabs, using MV3 debugger and a user-level Native Messaging host instead of per-session remote-debugging approval.
+- Reuse one persistent official action backend with explicit page IDs, per-client page claims, popup Pause, private loopback credentials and bounded metadata audit.
+- Revoke access during pending browser commands, finish cleaning up other tabs when one has closed, and cancel backend startup if the relay shuts down.
+- Add no-overwrite installation, native/CDP contracts, opt-in disposable-profile extension E2E and ADR 0002. Preserve isolated default and attended autoConnect.
+- Extension installation and real daily-profile visual/no-repeat-approval acceptance remain human steps; Chrome debugging banners are not suppressed. No npm or Chrome Web Store publication.
+
 ## 0.3.1
 
 - Complete the packaged browser skill with isolated/attach mode selection, daily-Chrome setup, human authorization, official tool usage and capability/error boundaries. Update skill discovery metadata; browser behavior is unchanged from 0.3.0.
