@@ -34,7 +34,7 @@ export class ExtensionTools {
   private active = new Map<string, number>();
   private disconnected = new Set<string>();
   private started?: Promise<void>;
-  private stopping = false;
+  private readonly lifetime = new AbortController();
   constructor(
     readonly endpoint: string,
     readonly token: string,
@@ -42,7 +42,7 @@ export class ExtensionTools {
     readonly failed: (error: Error) => void,
   ) {
     this.client.onclose = () => {
-      if (!this.stopping)
+      if (!this.lifetime.signal.aborted)
         this.failed(
           Error(
             "Official extension backend disconnected; its session is invalid",
@@ -52,6 +52,8 @@ export class ExtensionTools {
     this.client.onerror = (error) => this.failed(error);
   }
   private ready() {
+    const { signal } = this.lifetime;
+    signal.throwIfAborted();
     this.started ??= (async () => {
       const transport = await upstreamTransport(
         [
@@ -65,7 +67,8 @@ export class ExtensionTools {
         ],
         "inherit",
       );
-      await this.client.connect(transport);
+      signal.throwIfAborted();
+      await this.client.connect(transport, { signal });
     })();
     return this.started;
   }
@@ -168,7 +171,7 @@ export class ExtensionTools {
     await this.audit.write("client.disconnected", { client: owner });
   }
   async close() {
-    this.stopping = true;
+    this.lifetime.abort(Error("Extension backend is stopping"));
     await this.client.close();
   }
 }

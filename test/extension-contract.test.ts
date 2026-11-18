@@ -14,10 +14,33 @@ import { startRelay } from "../src/extension/relay.js";
 import { Audit } from "../src/extension/audit.js";
 import { runSelectedMode } from "../src/cli-mode.js";
 import { RelayClient } from "../src/extension/client.js";
+import { ExtensionTools } from "../src/extension/tools.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const execute = promisify(execFile);
+
+test("closing during initial tool discovery prevents a late upstream process", async (t) => {
+  const start = t.mock.method(
+    StdioClientTransport.prototype,
+    "start",
+    async () => {
+      throw Error("Stopped relay tried to start a subprocess");
+    },
+  );
+  const tools = new ExtensionTools(
+    "ws://127.0.0.1:1/cdp",
+    "test",
+    new Audit(tmpdir()),
+    (error) => {
+      throw error;
+    },
+  );
+  const discovery = tools.list();
+  await tools.close();
+  await assert.rejects(discovery, /Extension backend is stopping/);
+  assert.equal(start.mock.callCount(), 0);
+});
 
 test("ending an MCP session during relay discovery must not open a late orphan socket", async () => {
   const directory = await mkdtemp(join(tmpdir(), "extension-cancel-"));
