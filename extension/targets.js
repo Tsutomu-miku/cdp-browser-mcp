@@ -125,14 +125,34 @@ export class Targets {
       });
     delete state.targets[key];
   }
-  async reset(keepSubscription = false) {
+  async reset() {
     const state = await this.state();
-    for (const key of Object.keys(state.targets))
-      await this.remove(state, key, true);
-    await this.save(
-      keepSubscription
-        ? state
-        : { targets: {}, discover: false, autoAttach: false },
-    );
+    state.discover = false;
+    state.autoAttach = false;
+    const failures = [];
+    for (const [key, target] of Object.entries(state.targets)) {
+      try {
+        await this.remove(state, key, true);
+      } catch (error) {
+        // Chrome may close a tab between reading our session map and detaching.
+        try {
+          const active = await this.api.debugger.getTargets();
+          if (
+            active.some((item) => item.tabId === target.tabId && item.attached)
+          )
+            throw error;
+          await this.remove(state, key, false);
+        } catch (cleanupError) {
+          failures.push(cleanupError);
+        }
+      }
+    }
+    await this.save(state);
+    if (failures.length)
+      throw new AggregateError(
+        failures,
+        "Could not detach every Chrome debugger session",
+        { cause: failures[0] },
+      );
   }
 }

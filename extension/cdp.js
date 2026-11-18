@@ -24,7 +24,7 @@ export class ExtensionCdp {
     this.emit = emit;
     this.targets = new Targets(api, emit);
   }
-  async command({ method, params = {}, sessionId }) {
+  async route({ method, params = {}, sessionId }) {
     if (
       typeof method !== "string" ||
       denied.has(method) ||
@@ -34,13 +34,15 @@ export class ExtensionCdp {
     const state = await this.targets.refresh();
     const all = Object.values(state.targets);
     if (method === "Target.getBrowserContexts")
-      return { browserContextIds: [] };
+      return { result: { browserContextIds: [] } };
     if (method === "Target.getTargets")
       return {
-        targetInfos: all.flatMap((t) => [
-          this.targets.info(t, "tab"),
-          this.targets.info(t),
-        ]),
+        result: {
+          targetInfos: all.flatMap((t) => [
+            this.targets.info(t, "tab"),
+            this.targets.info(t),
+          ]),
+        },
       };
     if (method === "Target.setDiscoverTargets") {
       state.discover = params.discover;
@@ -53,7 +55,7 @@ export class ExtensionCdp {
                 method: "Target.targetCreated",
                 params: { targetInfo: this.targets.info(t, type) },
               });
-      return {};
+      return { result: {} };
     }
     if (!sessionId && method === "Target.setAutoAttach") {
       if (!params.flatten)
@@ -66,18 +68,22 @@ export class ExtensionCdp {
         else await this.targets.detach(t);
       }
       await this.targets.save(state);
-      return {};
+      return { result: {} };
     }
     if (!sessionId && method === "Target.attachToTarget") {
       const target = all.find((t) => t.id === params.targetId);
       if (!target?.pageSession)
         throw Error("Target not available in approved daily tabs");
-      const result = await this.api.debugger.sendCommand(
-        { tabId: target.tabId },
-        method,
-        params,
-      );
-      return { sessionId: `${target.tabId}:${result.sessionId}` };
+      return {
+        dispatch: async () => {
+          const result = await this.api.debugger.sendCommand(
+            { tabId: target.tabId },
+            method,
+            params,
+          );
+          return { sessionId: `${target.tabId}:${result.sessionId}` };
+        },
+      };
     }
     if (!sessionId && method === "Target.detachFromTarget") {
       const t = all.find(
@@ -88,12 +94,15 @@ export class ExtensionCdp {
       );
       if (!t) throw Error("Unknown root session");
       if (params.sessionId.startsWith(`${t.tabId}:`))
-        return await this.api.debugger.sendCommand({ tabId: t.tabId }, method, {
-          sessionId: params.sessionId.slice(String(t.tabId).length + 1),
-        });
+        return {
+          dispatch: () =>
+            this.api.debugger.sendCommand({ tabId: t.tabId }, method, {
+              sessionId: params.sessionId.slice(String(t.tabId).length + 1),
+            }),
+        };
       await this.targets.remove(state, String(t.tabId), true);
       await this.targets.save(state);
-      return {};
+      return { result: {} };
     }
     const target = all.find(
       (t) =>
@@ -121,15 +130,15 @@ export class ExtensionCdp {
               waitingForDebugger: false,
             },
           });
-        return {};
+        return { result: {} };
       }
-      if (method === "Runtime.runIfWaitingForDebugger") return {}; // Relay tab containers have no runtime.
+      if (method === "Runtime.runIfWaitingForDebugger") return { result: {} }; // Relay tab containers have no runtime.
       if (method === "Target.getTargetInfo")
-        return { targetInfo: this.targets.info(target, "tab") };
+        return { result: { targetInfo: this.targets.info(target, "tab") } };
       throw Error(`Unsupported command on relay tab container: ${method}`);
     }
     if (method === "Target.getTargetInfo" && sessionId === target.pageSession)
-      return { targetInfo: this.targets.info(target) };
+      return { result: { targetInfo: this.targets.info(target) } };
     if (method === "Target.closeTarget" || method === "Target.createTarget")
       throw Error(
         "Creating/closing daily tabs is not exposed in extension mode",
@@ -150,9 +159,11 @@ export class ExtensionCdp {
       forwarded.sessionId = params.sessionId.slice(
         String(target.tabId).length + 1,
       );
-    return await this.api.debugger.sendCommand(source, method, forwarded);
+    return {
+      dispatch: () => this.api.debugger.sendCommand(source, method, forwarded),
+    };
   }
-  async event(source, method, params) {
+  async event(source, method, params, emit = this.emit) {
     const state = await this.targets.state();
     const target = state.targets[String(source.tabId)];
     if (!target?.pageSession) return; // Events from a detached generation are obsolete.
@@ -165,6 +176,6 @@ export class ExtensionCdp {
       method === "Target.detachedFromTarget"
     )
       result.sessionId = `${source.tabId}:${params.sessionId}`;
-    this.emit({ method, params: result, sessionId });
+    emit({ method, params: result, sessionId });
   }
 }

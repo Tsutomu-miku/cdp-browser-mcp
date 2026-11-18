@@ -44,7 +44,11 @@ export async function startRelay(
       z.object({ kind: z.literal("revoke") })
         .strict()
         .parse(value);
-      if (browserAccessed) http.emit("revoked");
+      if (browserAccessed && !closing) {
+        closing = true;
+        for (const peer of sockets.clients) peer.terminate();
+        http.emit("revoked");
+      }
       return;
     }
     const parsed = message.parse(value);
@@ -57,6 +61,7 @@ export async function startRelay(
     const supplied = Buffer.from(request.headers.authorization ?? "");
     const wanted = Buffer.from(`Bearer ${expected}`);
     if (
+      closing ||
       request.headers.origin ||
       request.headers.host !== `127.0.0.1:${port}` ||
       !["/mcp", "/cdp"].includes(request.url ?? "") ||
@@ -196,8 +201,8 @@ export async function startRelay(
     async close() {
       closing = true;
       channel.off("message", nativeMessage);
-      await tools.close();
       for (const peer of sockets.clients) peer.terminate();
+      await tools.close();
       await new Promise<void>((resolve, reject) =>
         http.close((error) => (error ? reject(error) : resolve())),
       );

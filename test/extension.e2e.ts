@@ -241,11 +241,27 @@ try {
   );
   const beforePause = Object.keys(privateState.bridge.targets).length;
   assert.ok(beforePause > 0);
+  // Pause must disconnect a real CDP request while the page still awaits it.
+  const interrupted = assert.rejects(
+    clients[0].callTool({
+      name: "evaluate_script",
+      arguments: {
+        pageId,
+        function:
+          "() => { document.body.dataset.pauseStarted = 'yes'; return new Promise(() => {}); }",
+      },
+    }),
+    /not connected|disconnected|session.*invalid/i,
+  );
+  await page
+    .locator('body[data-pause-started="yes"]')
+    .waitFor({ timeout: 5000 });
   await popup.getByRole("button", { name: "Pause all access" }).click();
   await popup
     .getByRole("status")
     .filter({ hasText: "Access paused" })
     .waitFor();
+  await interrupted;
   for (let i = 0; i < 100; i++) {
     const targets = await worker.evaluate(
       async () =>
@@ -290,6 +306,7 @@ try {
         concurrentClients: true,
         sharedHost: true,
         popupConsentAndPause: true,
+        pauseInterruptedPendingCommand: true,
         loginWallVerified: true,
         loginRequests,
       },

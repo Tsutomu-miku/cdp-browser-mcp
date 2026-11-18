@@ -44,7 +44,7 @@ function chromeFixture() {
       attach: async (target: unknown) => {
         sent.push({ attach: target });
       },
-      detach: async (target: unknown) => {
+      detach: async (target: { tabId: number }) => {
         sent.push({ detach: target });
       },
       sendCommand: async (source: unknown, method: string, params: unknown) => {
@@ -53,8 +53,14 @@ function chromeFixture() {
       },
     },
   };
+  const router = new ExtensionCdp(api, (event: unknown) => events.push(event));
   return {
-    router: new ExtensionCdp(api, (event: unknown) => events.push(event)),
+    command: async (request: Parameters<typeof router.route>[0]) => {
+      const route = await router.route(request);
+      return route.dispatch ? await route.dispatch() : route.result;
+    },
+    router,
+    api,
     local,
     session,
     sent,
@@ -103,6 +109,48 @@ test("exact-origin approval is paused by default; blocked and privileged origins
   );
 });
 
+test("revocation cleans up other sessions when Chrome closes a tab during detach", async () => {
+  const f = chromeFixture();
+  await f.command({
+    method: "Target.setAutoAttach",
+    params: { autoAttach: true, flatten: true },
+  });
+  const detach = f.api.debugger.detach;
+  f.api.debugger.detach = async (target) => {
+    if (target.tabId === 1) {
+      f.tabs.shift(); // Chrome already removed this debugger with the tab.
+      throw Error("No tab with given id 1.");
+    }
+    await detach(target);
+  };
+  await f.router.targets.reset();
+  assert.ok(f.sent.some((entry) => entry.detach?.tabId === 2));
+  assert.deepEqual(f.session.bridge.targets, {});
+  assert.equal(f.session.bridge.autoAttach, false);
+});
+
+test("revocation surfaces an unexpected detach error after cleaning up the other sessions", async () => {
+  const f = chromeFixture();
+  await f.command({
+    method: "Target.setAutoAttach",
+    params: { autoAttach: true, flatten: true },
+  });
+  const detach = f.api.debugger.detach;
+  f.api.debugger.detach = async (target) => {
+    if (target.tabId === 1) throw Error("Debugger detach refused");
+    await detach(target);
+  };
+  await assert.rejects(
+    f.router.targets.reset(),
+    (error) =>
+      error instanceof AggregateError &&
+      error.errors.some((item) => item.message === "Debugger detach refused"),
+  );
+  assert.deepEqual(Object.keys(f.session.bridge.targets), ["1"]);
+  assert.ok(f.sent.some((entry) => entry.detach?.tabId === 2));
+  assert.equal(f.session.bridge.autoAttach, false);
+});
+
 test("browser close, cookie export and unapproved navigation never reach Chrome", async () => {
   const f = chromeFixture();
   for (const method of [
@@ -114,16 +162,16 @@ test("browser close, cookie export and unapproved navigation never reach Chrome"
     "Network.clearBrowserCookies",
     "Page.close",
   ])
-    await assert.rejects(f.router.command({ method }), /Unavailable/);
+    await assert.rejects(f.command({ method }), /Unavailable/);
   assert.deepEqual(f.sent, []);
-  await f.router.command({
+  await f.command({
     method: "Target.setAutoAttach",
     params: { autoAttach: true, flatten: true },
   });
   const { pageSession } = f.session.bridge.targets["1"];
   const before = f.sent.length;
   await assert.rejects(
-    f.router.command({
+    f.command({
       method: "Page.navigate",
       params: { url: "https://bank.example/" },
       sessionId: pageSession,
@@ -135,7 +183,7 @@ test("browser close, cookie export and unapproved navigation never reach Chrome"
 
 test("flattened child IDs with identical native values remain scoped to their Chrome tab", async () => {
   const f = chromeFixture();
-  await f.router.command({
+  await f.command({
     method: "Target.setAutoAttach",
     params: { autoAttach: true, flatten: true },
   });
@@ -144,7 +192,7 @@ test("flattened child IDs with identical native values remain scoped to their Ch
       sessionId: "same-child-id",
       targetInfo: { targetId: `worker-${tabId}`, type: "worker" },
     });
-    await f.router.command({
+    await f.command({
       method: "Runtime.enable",
       sessionId: `${tabId}:same-child-id`,
     });
@@ -159,7 +207,7 @@ test("flattened child IDs with identical native values remain scoped to their Ch
       .map((event) => event.params.sessionId),
     ["1:same-child-id", "2:same-child-id"],
   );
-  await f.router.command({
+  await f.command({
     method: "Target.detachFromTarget",
     params: { sessionId: "1:same-child-id" },
   });
@@ -172,12 +220,12 @@ test("flattened child IDs with identical native values remain scoped to their Ch
 
 test("leaving approved origins detaches and hides a daily tab without closing it", async () => {
   const f = chromeFixture();
-  await f.router.command({
+  await f.command({
     method: "Target.setAutoAttach",
     params: { autoAttach: true, flatten: true },
   });
   f.tabs[0].url = "https://bank.example/";
-  const result = await f.router.command({ method: "Target.getTargets" });
+  const result = await f.command({ method: "Target.getTargets" });
   assert.equal(
     result.targetInfos.some((target: any) => target.targetId === "target-1"),
     false,
