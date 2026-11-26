@@ -1,0 +1,73 @@
+.scope-row select,
+.scope-row select::picker(select) {
+  appearance: base-select;
+}
+
+.scope-row select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 30px;
+  padding: 5px 9px 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--control);
+  color: var(--foreground);
+  box-shadow: var(--shadow-xs);
+  font:
+    500 12.5px/1 system-ui,
+    sans-serif;
+  cursor: pointer;
+}
+
+.scope-row select:hover {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+
+.scope-row select::picker-icon {
+  content: "";
+  inline-size: 13px;
+  block-size: 13px;
+  margin-inline-start: auto;
+  background: var(--muted-foreground);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform 140ms ease;
+}
+
+.scope-row select:open::picker-icon {
+  transform: rotate(180deg);
+}
+
+.scope-row select::picker(select) {
+  margin-block-start: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--popover);
+  color: var(--foreground);
+  box-shadow: var(--shadow-popover);
+}
+
+.scope-row option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.scope-row option::checkmark {
+  order: 1;
+  margin-inline-start: auto;
+  color: var(--ring);
+  font-size: 12px;
+}
+
+.scope-row option:hover,
+.scope-row option:focus-visible {
+  background: var(--hover);
+}

@@ -5,45 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CDP Browser MCP access</title>
     <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="popup-select.css" />
   </head>
   <body>
     <main>
-      <h1>Daily Chrome access</h1>
-      <p>
-        Approve sites once. Local agents can then inspect and operate their
-        signed-in tabs without repeated remote-debugging approval.
-      </p>
-      <p>
-        Chrome may show a debugging banner. Access is powerful; approve only
-        sites you trust agents to use.
-      </p>
-      <form id="access" action="popup.html" method="post">
-        <label for="origins">Approved origins</label>
-        <p id="origin-help">
-          One exact origin per line, for example https://example.com. No paths
-          or trailing slash.
-        </p>
-        <textarea
-          id="origins"
-          name="origins"
-          rows="4"
-          required
-          spellcheck="false"
-          autocapitalize="none"
-          aria-describedby="origin-help"
-        ></textarea>
-        <label for="blocked">Sensitive origins to hide</label>
-        <textarea
-          id="blocked"
-          name="blocked"
-          rows="2"
-          spellcheck="false"
-          autocapitalize="none"
-        ></textarea>
-        <button type="submit">Save and enable access</button>
-        <button id="pause" type="button">Pause all access</button>
+      <header class="panel-header">
+        <div class="panel-title">
+          <span class="panel-icon" aria-hidden="true">
+            <svg><use href="icons.svg#shield"></use></svg>
+          </span>
+          <h1>Browser access</h1>
+        </div>
+        <span id="status" class="status-badge" role="status"></span>
+      </header>
+      <form action="popup.html" method="post">
+        <section class="scope-card">
+          <div class="scope-row">
+            <label for="website-scope">Website access</label>
+            <select
+              id="website-scope"
+              name="website-scope"
+              aria-controls="approved-sites all-sites-notice"
+            >
+              <option value="approved">Approved websites</option>
+              <option value="all">Allow all websites</option>
+            </select>
+          </div>
+          <div id="all-sites-notice" class="scope-notice" hidden>
+            <svg aria-hidden="true">
+              <use href="icons.svg#shield-alert"></use>
+            </svg>
+            <p>Accesses signed-in HTTP(S) tabs, except hidden origins.</p>
+          </div>
+        </section>
+        <div id="approved-sites" class="field">
+          <div class="field-header">
+            <label for="origins">Approved origins</label>
+            <span id="origin-help" class="field-hint">One per line</span>
+          </div>
+          <textarea
+            id="origins"
+            name="origins"
+            rows="3"
+            placeholder="https://example.com"
+            required
+            spellcheck="false"
+            autocapitalize="none"
+            aria-describedby="origin-help"
+          ></textarea>
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label for="blocked">Sensitive origins to hide</label>
+            <span id="blocked-help" class="field-hint">Always excluded</span>
+          </div>
+          <textarea
+            id="blocked"
+            name="blocked"
+            rows="2"
+            placeholder="https://bank.example"
+            spellcheck="false"
+            autocapitalize="none"
+            aria-describedby="blocked-help"
+          ></textarea>
+        </div>
+        <p id="feedback" class="feedback" aria-live="polite" hidden></p>
+        <footer class="panel-actions">
+          <button id="pause" class="button secondary" type="button">
+            <svg aria-hidden="true">
+              <use href="icons.svg#pause"></use>
+            </svg>
+            Pause all access
+          </button>
+          <button class="button primary" type="submit">
+            Save and enable access
+          </button>
+        </footer>
       </form>
-      <p id="status" role="status" aria-live="polite"></p>
     </main>
     <script type="module" src="popup.js"></script>
   </body>

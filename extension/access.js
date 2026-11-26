@@ -2,7 +2,8 @@
 export async function accessPolicy(api) {
   const { access = { paused: true, origins: [], blocked: [] } } =
     await api.storage.local.get("access");
-  return access;
+  // Existing installations store only the selected origins.
+  return { ...access, allSites: access.allSites === true };
 }
 
 export function permitted(url, policy) {
@@ -11,8 +12,8 @@ export function permitted(url, policy) {
     const parsed = new URL(url);
     return (
       ["http:", "https:"].includes(parsed.protocol) &&
-      policy.origins.includes(parsed.origin) &&
-      !policy.blocked.includes(parsed.origin)
+      !policy.blocked.includes(parsed.origin) &&
+      (policy.allSites === true || policy.origins.includes(parsed.origin))
     );
   } catch (error) {
     if (error instanceof TypeError) return false; // Non-web Chrome targets are not eligible.

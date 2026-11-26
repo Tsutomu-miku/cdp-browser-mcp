@@ -1,5 +1,16 @@
 import { accessPolicy, permitted } from "./access.js";
 
+// Chrome enumerates tabs that its debugger may still refuse to attach to.
+// Per-target restrictions must not block otherwise accessible tabs.
+const restrictedTargets = new Set([
+  "Cannot attach to this target.",
+  "Cannot access a chrome:// URL",
+  "Cannot access a chrome-extension:// URL of different extension",
+  "The extensions gallery cannot be scripted.",
+  "The New Tab Page cannot be scripted.",
+  "This page cannot be scripted due to an ExtensionsSettings policy.",
+]);
+
 /** Chrome debugger targets projected as CDP tab/page targets for Puppeteer. */
 export class Targets {
   constructor(api, emit) {
@@ -81,6 +92,11 @@ export class Targets {
     try {
       await this.api.debugger.attach({ tabId: target.tabId }, "1.3");
     } catch (error) {
+      if (restrictedTargets.has(error.message)) {
+        await this.remove(state, String(target.tabId), false);
+        await this.save(state);
+        return;
+      }
       throw Error(
         `Chrome extension debugger attach failed. Check the extension and managed debugger policy; extension mode does not need Remote Debugging or Allow. Cause: ${error.message}`,
       );
