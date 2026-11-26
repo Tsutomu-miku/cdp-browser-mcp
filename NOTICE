@@ -10,3 +10,7 @@ The upstream package is used unmodified through its MCP executable.
 Its Apache-2.0 license is reproduced in third_party/chrome-devtools-mcp-LICENSE.
 Upstream 1.13.0 ships no separate NOTICE file.
 Bundled third-party license notices are retained in the installed dependency.
+
+The extension popup includes Lucide icons (https://lucide.dev),
+Copyright (c) 2026 Lucide Icons and Contributors, licensed under the ISC License.
+The license accompanies the icons in extension/LUCIDE-LICENSE.txt.

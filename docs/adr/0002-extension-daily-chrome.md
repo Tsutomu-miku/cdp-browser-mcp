@@ -6,7 +6,7 @@
 
 ## Decision
 
-Add explicit `mcp --mode extension`, keeping `isolated` the default and existing attended `attach` unchanged. Use MV3 `chrome.debugger` plus Native Messaging. Human installation and exact-origin approval happen once; no per-MCP remote-debugging approval is used. Chrome's debugger infobar remains possible. Do not add `--silent-debugger-extension-api`, alter managed policy, or promise invisible debugging.
+Add explicit `mcp --mode extension`, keeping `isolated` the default and existing attended `attach` unchanged. Use MV3 `chrome.debugger` plus Native Messaging. The human installs the extension and approves a website scope once, with exact origins as the default and an explicit option for all HTTP(S) sites. No per-MCP remote-debugging approval is used. Chrome's debugger infobar remains possible. Do not add `--silent-debugger-extension-api`, alter managed policy, or promise invisible debugging.
 
 The native host owns an authenticated loopback relay and one long-lived unmodified official Chrome DevTools MCP subprocess. Agent-facing foreground MCP sessions share that backend, use explicit page IDs, and claim pages until release/disconnect. One extension CDP connection owns all actual debugger sessions; virtual tab containers adapt Chrome's tab debugger API to Puppeteer's Target/session transport. Real page/iframe commands go to Chrome, not a parallel DOM action implementation. Browser-wide unsupported commands fail instead of returning fabricated metadata/success.
 
@@ -17,7 +17,7 @@ The old PR #1 remains historical. Its standard native framing, exact caller-orig
 - Extension consent/target state lives in Chrome storage. Only its popup grants/resumes access; Chrome Cancel pauses it. Native ports and the event serialization promise are ephemeral runtime handles, not persistent authorization/session state.
 - The native host owns its private endpoint/credentials, official subprocess, bounded audit and one-host reservation. A dead PID permits reclaiming a stale reservation; a live owner is never killed or overwritten.
 - `ExtensionTools` owns one page-claim map across MCP peers. There is no second isolated broker, Chrome lifecycle owner, download pipeline or lane-header backend.
-- Core official page tools only; no create/close tabs, cookie export, upload, browser-wide diagnostics or download/emulation toolset. Unsupported domains remain unavailable. Exact-origin controls aid trusted-agent coordination, not adversarial origin isolation; evaluation and approved-page subresources still have profile-level implications.
+- Core official page tools only; no create/close tabs, cookie export, upload, browser-wide diagnostics or download/emulation toolset. Unsupported domains remain unavailable. Sensitive-origin exclusions apply in both scopes. Website controls aid trusted-agent coordination, not adversarial origin isolation; evaluation and approved-page subresources still have profile-level implications.
 - Standard user-level Native Messaging installation is explicit and does not normally need sudo. Unpacked installation and enterprise approval are human steps. Web Store publication is not part of this PR. A fixed installation path preserves an unpacked ID; store signing/update identity needs a separate distribution decision.
 
 ## Evidence and acceptance

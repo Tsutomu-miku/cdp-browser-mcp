@@ -96,13 +96,91 @@ try {
   await mkdir("test-results", { recursive: true });
   const popup = await context.newPage();
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);
-  await popup.getByLabel("Approved origins").fill(base);
+  const origins = popup.getByLabel("Approved origins");
+  const selectedOrigin = base.replace("127.0.0.1", "localhost");
+  await origins.fill(selectedOrigin);
   await popup.getByRole("button", { name: "Save and enable access" }).click();
   await popup
     .getByRole("status")
     .filter({ hasText: "Access enabled" })
     .waitFor();
-  await popup.screenshot({ path: "test-results/extension-popup.png" });
+  const scope = popup.getByRole("combobox", { name: "Website access" });
+  assert.equal(await scope.inputValue(), "approved");
+  await scope.click();
+  assert.equal(
+    await scope.evaluate((element) => element.matches(":open")),
+    true,
+  );
+  await popup.keyboard.press("ArrowDown");
+  await popup.keyboard.press("Enter");
+  assert.equal(await scope.inputValue(), "all");
+  assert.equal(await origins.isHidden(), true);
+  assert.equal(await origins.isDisabled(), true);
+  assert.equal(
+    await worker.evaluate(
+      async () =>
+        (await (globalThis as any).chrome.storage.local.get("access")).access
+          .allSites,
+    ),
+    false,
+    "Selecting a scope must not grant access before saving",
+  );
+  await popup.getByLabel("Sensitive origins to hide").fill(selectedOrigin);
+  await popup.getByRole("button", { name: "Save and enable access" }).click();
+  await popup
+    .getByText("Reconnect any open MCP sessions to apply changes.")
+    .waitFor();
+  await popup.reload();
+  await popup
+    .getByRole("status")
+    .filter({ hasText: "Access enabled" })
+    .waitFor();
+  assert.equal(await scope.inputValue(), "all");
+  await scope.selectOption("approved");
+  assert.equal(await origins.isDisabled(), false);
+  assert.equal(await origins.inputValue(), selectedOrigin);
+  await scope.selectOption("all");
+  await popup
+    .locator("main")
+    .screenshot({ path: "test-results/extension-popup.png" });
+  // Chrome auto-sizes toolbar popups independently of tabs showing popup.html.
+  await popup.bringToFront();
+  const layout = await popup.evaluate(async () => {
+    const { action, extension } = (globalThis as any).chrome;
+    await action.openPopup();
+    const [view] = extension.getViews({ type: "popup" }) as Window[];
+    if (!view) throw Error("Toolbar popup did not open");
+    await new Promise<void>((resolve) => {
+      view.requestAnimationFrame(() =>
+        view.requestAnimationFrame(() => resolve()),
+      );
+    });
+    const { document, innerWidth } = view;
+    const main = document.querySelector("main")!;
+    const title = document.querySelector("h1")!.getBoundingClientRect();
+    const status = document.querySelector("#status")!.getBoundingClientRect();
+    const save = document
+      .querySelector('button[type="submit"]')!
+      .getBoundingClientRect();
+    const layout = {
+      width: innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      headerOverlaps: title.right > status.left && title.bottom > status.top,
+      saveClipped:
+        save.right >
+        innerWidth - parseFloat(view.getComputedStyle(main).paddingRight),
+    };
+    view.close();
+    return layout;
+  });
+  assert.deepEqual(layout, {
+    width: 356,
+    scrollWidth: 356,
+    headerOverlaps: false,
+    saveClipped: false,
+  });
+  const hiddenPage = await context.newPage();
+  await hiddenPage.goto(selectedOrigin);
   const page = context.pages()[0];
   assert.equal(
     (await fetch(base)).status,
@@ -185,6 +263,11 @@ try {
   const text = (pages.content as { text: string }[])
     .map((c) => c.text)
     .join("\n");
+  assert.ok(text.includes(base), "All sites must expose an unlisted origin");
+  assert.ok(
+    !text.includes(selectedOrigin),
+    "The sensitive origin must be hidden",
+  );
   const pageId = Number(text.match(/(?:^|\n)(\d+):/)?.[1]);
   assert.ok(Number.isSafeInteger(pageId), text);
   await call(0, "select_page", { pageId, bringToFront: true });

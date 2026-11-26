@@ -8,7 +8,7 @@ Last updated: 2026-11-17. **Draft only; not submitted or published.**
 - Short description: Let local coding agents work in approved daily Chrome tabs without repeated remote-debugging approvals.
 - Category: Developer Tools. Language: English.
 - Single purpose: Let trusted local coding agents inspect and operate user-approved signed-in web pages.
-- Detailed description: Approve the sites you want local agents to use, then reuse their open tabs and sign-in state across coding sessions. Read page snapshots, take screenshots and perform visible page actions. Pause access from the toolbar popup at any time. Chrome may display its debugging notice. Requires a separately installed local companion; no browser settings or enterprise policies are changed.
+- Detailed description: Approve specific websites or explicitly allow all websites, with the option to hide sensitive origins. Local agents can reuse eligible open tabs and their sign-in state across coding sessions. Read page snapshots, take screenshots and perform visible page actions. Pause access from the toolbar popup at any time. Chrome may display its debugging notice. Requires a separately installed local companion; no browser settings or enterprise policies are changed.
 
 ## Permissions justification
 
@@ -16,8 +16,8 @@ Last updated: 2026-11-17. **Draft only; not submitted or published.**
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | debugger        | Inspect approved pages, take screenshots and perform page actions through the local agent. High privilege disclosed during installation. |
 | nativeMessaging | Communicate with the user's separately installed local companion.                                                                        |
-| tabs            | Match approved origins to existing tab titles/URLs and hide unapproved tabs.                                                             |
-| storage         | Remember the user's approved/blocked origins and paused state; retain session routing across worker events.                              |
+| tabs            | Match existing tabs against the user's chosen website scope and sensitive-origin exclusions.                                             |
+| storage         | Remember the user's website scope, approved/blocked origins and paused state; retain session routing across worker events.               |
 | alarms          | Reconnect the local companion after a transport interruption without replaying page actions.                                             |
 
 No content scripts, host permissions, remote executable code, inline script or direct network requests are declared. Site consent does not reduce the underlying debugger permission into a browser security sandbox.

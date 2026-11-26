@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a popup option to allow all HTTP(S) websites, with sensitive-origin exclusions and Pause still enforced. Keep existing approved origins when switching scopes.
+
 ## 0.4.0
 
 - Add explicit extension mode for approved daily Chrome tabs, using MV3 debugger and a user-level Native Messaging host instead of per-session remote-debugging approval.
