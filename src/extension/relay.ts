@@ -6,6 +6,7 @@ import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import type { NativeChannel } from "./native-channel.js";
 import { ExtensionTools } from "./tools.js";
 import type { Audit } from "./audit.js";
+import { ExtensionActivity } from "./activity.js";
 
 const command = z.object({
   id: z.number().int(),
@@ -22,6 +23,7 @@ const message = z.object({
 export async function startRelay(
   channel: Pick<NativeChannel, "send" | "on" | "off">,
   audit: Audit,
+  activitySupported = false,
 ) {
   const token = randomBytes(32).toString("hex");
   const cdpToken = randomBytes(32).toString("hex");
@@ -34,6 +36,9 @@ export async function startRelay(
   let tools: ExtensionTools;
   let closing = false;
   let browserAccessed = false;
+  const activity = activitySupported
+    ? new ExtensionActivity(channel)
+    : undefined;
   const nativeMessage = (value: unknown) => {
     if (
       value &&
@@ -78,6 +83,7 @@ export async function startRelay(
         browserAccessed = true;
         const forward = async (bytes: unknown) => {
           const parsed = command.parse(JSON.parse(String(bytes)));
+          activity?.observe(parsed);
           try {
             channel.send({ kind: "command", message: parsed });
           } catch (error) {
@@ -133,6 +139,7 @@ export async function startRelay(
                 id: z.number().int(),
                 method: z.enum(["tools/list", "tools/call"]),
                 params: z.unknown().optional(),
+                label: z.string().trim().min(1).max(64).optional(),
               })
               .parse(raw);
             if (pending.has(request.id)) {
@@ -152,6 +159,7 @@ export async function startRelay(
                       params: request.params,
                     }).params,
                     controller.signal,
+                    request.label,
                   );
             if (peer.readyState === WebSocket.OPEN)
               peer.send(JSON.stringify({ id, result }));
@@ -193,6 +201,7 @@ export async function startRelay(
     cdpToken,
     audit,
     (error) => http.emit("error", error),
+    activity,
   );
   return {
     endpoint: `ws://127.0.0.1:${port}/mcp`,

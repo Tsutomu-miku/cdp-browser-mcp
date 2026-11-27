@@ -69,6 +69,7 @@ export class RelayClient {
     method: "tools/list" | "tools/call",
     params?: unknown,
     signal?: AbortSignal,
+    label?: string,
   ) {
     const peer = await this.connect();
     signal?.throwIfAborted();
@@ -112,7 +113,7 @@ export class RelayClient {
         timer,
       });
       signal?.addEventListener("abort", cancel, { once: true });
-      peer.send(JSON.stringify({ id, method, params }));
+      peer.send(JSON.stringify({ id, method, params, label }));
     });
   }
   close() {

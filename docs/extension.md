@@ -4,7 +4,7 @@
 
 - **No remote-debugging setup:** does not use `--autoConnect`, read `DevToolsActivePort`, open a remote-debugging port, launch Chrome, or ask for a fresh Chrome **Allow** dialog on every MCP session.
 - **Explicit human consent:** you install the extension and manage website access from its toolbar popup.
-- **Browser UI unchanged:** **Chrome's debugging banner can still appear.** There is no silent flag, enterprise-policy override, or promise to suppress browser security UI.
+- **Visible control:** The operated tab shows the MCP client name at the bottom-right corner of the page viewport during interaction and for three seconds after the action. The indicator does not intercept clicks. **Chrome's debugging banner can still appear.**
 - **Existing modes preserved:** `isolated` remains the default, and explicit `attach` remains available for attended autoConnect. Nothing automatically edits MCP registrations or enables extension access.
 
 ## One-time installation (macOS and Linux)
@@ -22,6 +22,8 @@ cdp-browser-mcp-extension-setup prepare --output "$HOME/.local/share/cdp-browser
 - Refuses to overwrite an existing directory.
 - Keep this directory at the same path so the unpacked extension ID stays stable.
 - To upgrade later, pause or disable the extension first; this installer does not auto-update.
+
+For an in-place upgrade, install the new GitHub Release tarball using the existing npm prefix. Copy the new package's `extension/` files into the already-loaded extension directory, then reload the extension in `chrome://extensions` and reconnect the MCP client. Keeping both paths preserves the extension ID, saved website settings, and the Native Messaging launcher.
 
 ### 2. Load the extension in Chrome
 
@@ -92,6 +94,7 @@ MCP initialization does not touch Chrome. Tool discovery connects to the running
 ## Tools and concurrency
 
 - **Page workflow:** call `list_pages`, then pass an explicit `pageId` to every page tool. Available official tools come from pinned unmodified `chrome-devtools-mcp@1.13.0` (`--pageIdRouting`): page selection (including `bringToFront`), snapshot/screenshot, click/drag/hover, fill/fill_form, key press, wait, evaluate, navigation, dialog handling, and page-scoped network/console listing and details. Call `extension_release_page` to release a tab without closing it.
+- **Search and submit:** when an input is already focused, use `type_text` with `submitKey: "Enter"` to type and submit in one tool call. Add `includeSnapshot: true` when you need to identify the next element.
 - **Shared backend & page claims:** one native host owns one official subprocess and one extension CDP connection, reused by all MCP clients. Each page is claimed by its first operating client; another client receives an explicit error until release or disconnect. Different pages can be used concurrently by cooperating clients (the official backend serializes context work). Flattened iframe/worker session IDs are namespaced by Chrome tab ID, and MCP clients never receive the internal CDP credential. This coordinates trusted local agents — it is not a tenant or account boundary.
 - **Intentionally unavailable:** tab creation/closing, file upload, browser-wide tracing/Lighthouse, emulation, download management, and cookie export tools are not exposed. `Browser`, `Storage`, `SystemInfo`, and `Extensions` CDP domains plus browser-wide cookie/cache methods, `Browser.close`, and `Page.close` are refused.
 - **Supported CLI surface:** only `mcp --mode extension --state-dir <installation-state>` is supported. `launch`/`status`/`stop`, `--agent`, `--tab`, lane/header options, Chrome launch flags, `--channel`, and `--attach-timeout-ms` are rejected. Keep `--state-dir` separate from isolated state and the Chrome profile.

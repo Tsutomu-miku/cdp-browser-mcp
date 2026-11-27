@@ -33,7 +33,7 @@ curl -fsSL https://raw.githubusercontent.com/Tsutomu-miku/cdp-browser-mcp/main/s
 Pin a specific release tag and install under a user-writable prefix:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tsutomu-miku/cdp-browser-mcp/main/scripts/install.sh -o install.sh && VERSION=v0.4.0 NPM_CONFIG_PREFIX="$HOME/.local" sh install.sh
+curl -fsSL https://raw.githubusercontent.com/Tsutomu-miku/cdp-browser-mcp/main/scripts/install.sh -o install.sh && VERSION=v0.4.2 NPM_CONFIG_PREFIX="$HOME/.local" sh install.sh
 export PATH="$HOME/.local/bin:$PATH"
 cdp-browser-mcp --version
 ```

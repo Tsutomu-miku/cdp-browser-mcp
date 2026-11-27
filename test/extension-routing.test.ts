@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { runInNewContext } from "node:vm";
 import { ExtensionCdp } from "../extension/cdp.js";
+import { PageActivity } from "../extension/activity.js";
 import { accessPolicy, exactOrigins, permitted } from "../extension/access.js";
 
 // Only the Chrome API is substituted. Routing, policy and stored state are real.
@@ -124,6 +126,40 @@ test("an existing saved allowlist retains its scope after upgrade", async () => 
   assert.equal(policy.allSites, false);
   assert.equal(permitted("https://example.com/page", policy), true);
   assert.equal(permitted("https://other.example/page", policy), false);
+});
+
+test("activity rendering rejects an origin that changed during context creation", async () => {
+  const f = chromeFixture();
+  const [tab] = f.tabs;
+  let renderRequests = 0;
+  const activity = new PageActivity({
+    ...f.api,
+    tabs: { get: async () => tab },
+    debugger: {
+      sendCommand: async (
+        _target: unknown,
+        method: string,
+        params: { expression: string },
+      ) => {
+        if (method === "Page.getFrameTree")
+          return { frameTree: { frame: { id: "frame", url: tab.url } } };
+        if (method === "Page.createIsolatedWorld")
+          return { executionContextId: 1 };
+        assert.equal(method, "Runtime.evaluate");
+        renderRequests++;
+        runInNewContext(params.expression, {
+          origin: "https://other.example",
+          get document() {
+            throw Error("Activity attempted to access a different origin");
+          },
+        });
+        return {};
+      },
+    },
+  });
+  await activity.update(tab.id, "agent");
+  await activity.update(tab.id, undefined);
+  assert.equal(renderRequests, 2, "New and cached contexts must check origin");
 });
 
 test("all-sites consent applies to discovery and navigation with blocklist and pause precedence", async () => {

@@ -10,19 +10,25 @@ import { RelayClient } from "./client.js";
 export async function serveExtension(directory: string) {
   const relay = new RelayClient(directory);
   const server = new Server(
-    { name: "cdp-browser-mcp-extension", version: "0.4.0" },
+    { name: "cdp-browser-mcp-extension", version: "0.4.2" },
     {
       capabilities: { tools: {} },
       instructions:
-        "Daily Chrome extension. Use list_pages and explicit pageId. Only human-approved origins are visible. One MCP client claims each page until release/disconnect. No lane headers, account/download isolation, tab creation/closing or browser-wide diagnostics. Stop access in the extension popup.",
+        "Daily Chrome extension. Use list_pages and explicit pageId. Use type_text with submitKey for a focused search field, and includeSnapshot on actions only when you need another element. Only human-approved origins are visible. One MCP client claims each page until release/disconnect. No lane headers, account/download isolation, tab creation/closing or browser-wide diagnostics. Stop access in the extension popup.",
     },
   );
   server.setRequestHandler(ListToolsRequestSchema, () =>
     relay.call("tools/list"),
   );
-  server.setRequestHandler(CallToolRequestSchema, (request, extra) =>
-    relay.call("tools/call", request.params, extra.signal),
-  );
+  server.setRequestHandler(CallToolRequestSchema, (request, extra) => {
+    const label = server.getClientVersion()?.name.trim().slice(0, 64);
+    return relay.call(
+      "tools/call",
+      request.params,
+      extra.signal,
+      label || undefined,
+    );
+  });
   const stop = async () => {
     relay.close();
     await server.close();

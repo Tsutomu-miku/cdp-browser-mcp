@@ -43,12 +43,18 @@ async function main() {
   const temporary = join(directory, `relay-${process.pid}.tmp`);
   let published = false;
   try {
+    let activitySupported = false;
     await new Promise<void>((done, reject) => {
       channel.once("message", (value) => {
         try {
-          z.object({ kind: z.literal("hello"), version: z.literal(2) }).parse(
-            value,
-          );
+          const hello = z
+            .object({
+              kind: z.literal("hello"),
+              version: z.literal(2),
+              activity: z.literal(true).optional(),
+            })
+            .parse(value);
+          activitySupported = hello.activity === true;
           done();
         } catch (error) {
           reject(error);
@@ -61,7 +67,7 @@ async function main() {
       );
     });
     const audit = new Audit(directory);
-    relay = await startRelay(channel, audit);
+    relay = await startRelay(channel, audit, activitySupported);
     relay.http.on("error", fail);
     relay.http.once("revoked", () => {
       channel.send({ kind: "revoking", version: 2 });
