@@ -1,8 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.4.2
+
+- Anchor the extension activity indicator to the visible page corner and keep it visible for three seconds after an action, including across navigation in the same tab.
+
+## 0.4.1
 
 - Add a popup option to allow all HTTP(S) websites, with sensitive-origin exclusions and Pause still enforced. Keep existing approved origins when switching scopes.
+- Show the MCP client name in the bottom-right corner of the tab during browser actions. The indicator lets clicks through and clears when actions finish or access is paused.
+- Add `type_text` with optional submit and snapshot in extension mode so focused search fields can be used in a single MCP call.
 
 ## 0.4.0
 

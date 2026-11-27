@@ -1,5 +1,6 @@
 import { ExtensionCdp } from "./cdp.js";
 import { accessPolicy } from "./access.js";
+import { PageActivity } from "./activity.js";
 
 const HOST = "io.github.tsutomu_miku.cdp_browser_mcp";
 // Only live transport/serialization handles live in memory. Consent and CDP
@@ -14,6 +15,7 @@ const send = (message) => {
 const cdp = new ExtensionCdp(chrome, (message) => {
   if (!revoking) send({ kind: "cdp", message });
 });
+const activity = new PageActivity(chrome);
 
 async function report(error) {
   console.error("CDP Browser MCP:", error);
@@ -26,6 +28,27 @@ function schedule(task) {
   // This is the event boundary: persist a visible failure, never a success fallback.
   serial = result.catch(report);
   return result;
+}
+
+function reportActivity(error) {
+  console.error("CDP Browser MCP activity indicator:", error);
+}
+
+async function resetChrome() {
+  let timer;
+  try {
+    // Give the indicator a chance to clear without holding up debugger detach
+    // if the page is paused by a dialog or breakpoint.
+    await Promise.race([
+      activity.reset().catch(reportActivity),
+      new Promise((resolve) => {
+        timer = setTimeout(resolve, 150);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+    await cdp.targets.reset();
+  }
 }
 
 async function showAccess() {
@@ -50,7 +73,7 @@ function revokeAccess(latchPause = false) {
           });
         }
       } finally {
-        await cdp.targets.reset();
+        await resetChrome();
       }
       if (epoch === revoked) revoking = false;
       await showAccess();
@@ -92,7 +115,7 @@ function handleCommand(connection, request) {
 async function connect() {
   if (port) return;
   const connecting = epoch;
-  await cdp.targets.reset();
+  await resetChrome();
   if (epoch !== connecting) return;
   revoking = false;
   const connection = chrome.runtime.connectNative(HOST);
@@ -112,7 +135,27 @@ async function connect() {
       return;
     }
     if (message.kind === "reset") {
-      void schedule(() => cdp.targets.reset());
+      void schedule(resetChrome);
+      return;
+    }
+    if (message.kind === "activity") {
+      const requested = epoch;
+      void schedule(async () => {
+        const { sessionId, label } = message;
+        if (
+          typeof sessionId !== "string" ||
+          (label !== undefined &&
+            (typeof label !== "string" || label.length > 64))
+        )
+          throw Error("Invalid native activity envelope");
+        const { targets } = await cdp.targets.state();
+        if (requested !== epoch || revoking || port !== connection) return;
+        const target = Object.values(targets).find(
+          (item) => item.pageSession === sessionId,
+        );
+        if (target)
+          void activity.update(target.tabId, label).catch(reportActivity);
+      });
       return;
     }
     if (
@@ -132,7 +175,7 @@ async function connect() {
     port = undefined;
     const disconnected = ++epoch;
     void schedule(async () => {
-      await cdp.targets.reset();
+      await resetChrome();
       if (epoch === disconnected) revoking = false;
       const { nativeStopExpected = false } =
         await chrome.storage.session.get("nativeStopExpected");
@@ -143,12 +186,14 @@ async function connect() {
       } else if (reason) await report(Error(reason));
     });
   });
-  connection.postMessage({ kind: "hello", version: 2 });
+  connection.postMessage({ kind: "hello", version: 2, activity: true });
 }
 
 chrome.debugger.onEvent.addListener((source, method, params) => {
   const received = epoch;
   if (revoking || !port) return;
+  if (!source.sessionId && method === "Page.domContentEventFired")
+    void activity.navigated(source.tabId).catch(reportActivity);
   void cdp
     .event(source, method, params, (message) => {
       if (epoch === received && !revoking) send({ kind: "cdp", message });
@@ -161,6 +206,7 @@ chrome.debugger.onDetach.addListener((source, reason) => {
     return;
   }
   void schedule(async () => {
+    void activity.clear(source.tabId).catch(reportActivity);
     const state = await cdp.targets.state();
     if (state.targets[String(source.tabId)]) {
       await cdp.targets.remove(state, String(source.tabId), false);
@@ -168,10 +214,16 @@ chrome.debugger.onDetach.addListener((source, reason) => {
     }
   });
 });
-chrome.tabs.onUpdated.addListener(() => {
-  void schedule(() => cdp.targets.refresh());
+chrome.tabs.onUpdated.addListener((tabId, change) => {
+  if (
+    change.url !== undefined ||
+    change.title !== undefined ||
+    change.status === "complete"
+  )
+    void schedule(() => cdp.targets.refresh());
 });
 chrome.tabs.onRemoved.addListener((tabId) => {
+  void activity.clear(tabId).catch(reportActivity);
   void schedule(async () => {
     const state = await cdp.targets.state();
     if (!state.targets[String(tabId)]) return;
