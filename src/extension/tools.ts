@@ -1,7 +1,11 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import type { CallToolRequest } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolResultSchema,
+  type CallToolRequest,
+} from "@modelcontextprotocol/sdk/types.js";
 import { upstreamTransport } from "../upstream.js";
 import type { Audit } from "./audit.js";
+import type { ExtensionActivity } from "./activity.js";
 
 const core = new Set([
   "list_pages",
@@ -12,6 +16,7 @@ const core = new Set([
   "drag",
   "fill",
   "fill_form",
+  "type_text",
   "hover",
   "press_key",
   "wait_for",
@@ -24,11 +29,23 @@ const core = new Set([
   "handle_dialog",
 ]);
 
+const interactive = new Set([
+  "click",
+  "drag",
+  "fill",
+  "fill_form",
+  "type_text",
+  "hover",
+  "press_key",
+  "evaluate_script",
+  "navigate_page",
+]);
+
 /** One persistent official action backend, shared by authenticated MCP peers. */
 export class ExtensionTools {
   private client = new Client({
     name: "cdp-browser-mcp-extension",
-    version: "0.4.0",
+    version: "0.4.2",
   });
   private owners = new Map<number, string>();
   private active = new Map<string, number>();
@@ -40,6 +57,7 @@ export class ExtensionTools {
     readonly token: string,
     readonly audit: Audit,
     readonly failed: (error: Error) => void,
+    readonly activity?: ExtensionActivity,
   ) {
     this.client.onclose = () => {
       if (!this.lifetime.signal.aborted)
@@ -78,7 +96,26 @@ export class ExtensionTools {
     return {
       ...result,
       tools: [
-        ...result.tools.filter((tool) => core.has(tool.name)),
+        ...result.tools
+          .filter((tool) => core.has(tool.name))
+          .map((tool) =>
+            tool.name !== "type_text"
+              ? tool
+              : {
+                  ...tool,
+                  inputSchema: {
+                    ...tool.inputSchema,
+                    properties: {
+                      ...tool.inputSchema.properties,
+                      includeSnapshot: {
+                        type: "boolean",
+                        description:
+                          "Also return a snapshot after typing and submitting.",
+                      },
+                    },
+                  },
+                },
+          ),
         {
           name: "extension_release_page",
           description:
@@ -92,10 +129,54 @@ export class ExtensionTools {
       ],
     };
   }
+  private async run(request: CallToolRequest["params"], signal: AbortSignal) {
+    const options = { timeout: 90000, signal };
+    if (request.name !== "type_text")
+      return await this.client.callTool(request, undefined, options);
+
+    const { includeSnapshot, ...args } = request.arguments ?? {};
+    const typed = CallToolResultSchema.parse(
+      await this.client.callTool(
+        { ...request, arguments: args },
+        undefined,
+        options,
+      ),
+    );
+    if (includeSnapshot !== true || typed.isError) return typed;
+
+    const snapshot = CallToolResultSchema.parse(
+      await this.client.callTool(
+        { name: "take_snapshot", arguments: { pageId: args.pageId } },
+        undefined,
+        options,
+      ),
+    );
+    return {
+      ...typed,
+      content: [
+        ...typed.content,
+        ...(snapshot.isError
+          ? [
+              {
+                type: "text" as const,
+                text: "Typing completed before the snapshot failed. Inspect the page before retrying.",
+              },
+            ]
+          : []),
+        ...snapshot.content,
+      ],
+      structuredContent: {
+        ...typed.structuredContent,
+        ...snapshot.structuredContent,
+      },
+      isError: snapshot.isError,
+    };
+  }
   async call(
     owner: string,
     request: CallToolRequest["params"],
     signal: AbortSignal,
+    label = "MCP",
   ) {
     const { name, arguments: args = {} } = request;
     const pageId = args.pageId;
@@ -105,6 +186,7 @@ export class ExtensionTools {
       if (typeof pageId !== "number" || this.owners.get(pageId) !== owner)
         throw Error("Page is not claimed by this MCP client");
       this.owners.delete(pageId);
+      this.activity?.forget(pageId);
       await this.audit.write("page.released", { client: owner, pageId });
       return {
         content: [
@@ -128,6 +210,7 @@ export class ExtensionTools {
       this.owners.set(pageId, owner);
     }
     this.active.set(owner, (this.active.get(owner) ?? 0) + 1);
+    let stopActivity: (() => void) | undefined;
     try {
       await this.audit.write("tool.started", {
         client: owner,
@@ -135,10 +218,15 @@ export class ExtensionTools {
         pageId: typeof pageId === "number" ? pageId : undefined,
       });
       await this.ready();
-      const result = await this.client.callTool(request, undefined, {
-        timeout: 90000,
-        signal,
-      });
+      if (this.activity && typeof pageId === "number" && interactive.has(name))
+        stopActivity = await this.activity.start(
+          this.client,
+          pageId,
+          label,
+          signal,
+          this.lifetime.signal,
+        );
+      const result = await this.run(request, signal);
       await this.audit.write("tool.finished", {
         client: owner,
         tool: name,
@@ -153,11 +241,15 @@ export class ExtensionTools {
       });
       throw error;
     } finally {
-      const remaining = this.active.get(owner)! - 1;
-      if (remaining) this.active.set(owner, remaining);
-      else {
-        this.active.delete(owner);
-        if (this.disconnected.delete(owner)) await this.release(owner);
+      try {
+        stopActivity?.();
+      } finally {
+        const remaining = this.active.get(owner)! - 1;
+        if (remaining) this.active.set(owner, remaining);
+        else {
+          this.active.delete(owner);
+          if (this.disconnected.delete(owner)) await this.release(owner);
+        }
       }
     }
   }
@@ -166,8 +258,11 @@ export class ExtensionTools {
       this.disconnected.add(owner);
       return;
     }
-    for (const [pageId, current] of this.owners)
-      if (current === owner) this.owners.delete(pageId);
+    for (const [pageId, current] of this.owners) {
+      if (current !== owner) continue;
+      this.owners.delete(pageId);
+      this.activity?.forget(pageId);
+    }
     await this.audit.write("client.disconnected", { client: owner });
   }
   async close() {

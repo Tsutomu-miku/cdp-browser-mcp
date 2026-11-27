@@ -67,8 +67,19 @@ const site = createServer((request, response) => {
     return;
   }
   response.setHeader("Content-Type", "text/html");
+  response.setHeader(
+    "Content-Security-Policy",
+    "style-src 'self'; script-src 'unsafe-inline'",
+  );
   response.end(
-    `<!doctype html><title>Extension synthetic signed-in page</title><h1>Signed in as Synthetic User</h1><label>Message <input id="message"></label><div id="canvas" style="width:400px;height:200px;background:steelblue;padding:20px"><button>Canvas start</button><button style="margin-left:150px">Canvas end</button></div><p id="result"></p><script>console.log('synthetic-console'); fetch('/data'); document.querySelector('#canvas').addEventListener('pointerup',()=>document.querySelector('#result').textContent='drag-visible');</script>`,
+    `<!doctype html><title>Extension synthetic signed-in page</title><h1>Signed in as Synthetic User</h1><form action="/"><label>Search <input id="message" name="q" autofocus></label></form><div id="canvas"><button>Canvas start</button><button>Canvas end</button></div><p id="result"></p><script>
+      console.log('synthetic-console'); fetch('/data');
+      const canvas = document.querySelector('#canvas');
+      Object.assign(canvas.style, {width:'400px', height:'200px', background:'steelblue', padding:'20px'});
+      canvas.lastElementChild.style.marginLeft = '150px';
+      canvas.addEventListener('pointerup',()=>document.querySelector('#result').textContent='drag-visible');
+      document.querySelector('#message').value = new URLSearchParams(location.search).get('q') ?? '';
+    </script>`,
   );
 });
 await new Promise<void>((done) => site.listen(0, "127.0.0.1", done));
@@ -211,7 +222,8 @@ try {
     await readFile(join(state, "relay.json"), "utf8"),
   ).pid;
   for (let i = 0; i < 2; i++) {
-    const client = new Client({ name: "extension-e2e", version: "1" });
+    const name = i === 0 ? "Codex" : "extension-e2e";
+    const client = new Client({ name, version: "1" });
     await client.connect(
       new StdioClientTransport({
         command: process.execPath,
@@ -273,6 +285,8 @@ try {
   await call(0, "select_page", { pageId, bringToFront: true });
   const snapshot = await call(0, "take_snapshot", { pageId });
   assert.match(JSON.stringify(snapshot), /Signed in as Synthetic User/);
+  const activityBadge = page.locator("#cdp-browser-mcp-activity");
+  assert.equal(await activityBadge.count(), 0);
   await assert.rejects(
     clients[1].callTool({ name: "take_snapshot", arguments: { pageId } }),
     /claimed by another/,
@@ -290,6 +304,7 @@ try {
   assert.ok(from_uid && to_uid, snapshotText);
   await call(0, "drag", { pageId, from_uid, to_uid });
   assert.equal(await page.locator("#result").innerText(), "drag-visible");
+  await activityBadge.waitFor({ state: "detached", timeout: 5000 });
   await page.screenshot({ path: "test-results/extension-after.png" });
   await call(0, "navigate_page", { pageId, type: "reload" });
   assert.match(
@@ -305,6 +320,54 @@ try {
     function: "() => localStorage.identity",
   });
   assert.match(JSON.stringify(identity), /synthetic-user/);
+  const searchSnapshot = JSON.stringify(
+    await call(0, "take_snapshot", { pageId }),
+  );
+  const searchUid = searchSnapshot.match(/uid=(\S+) textbox \\"Search/)?.[1];
+  assert.ok(searchUid, searchSnapshot);
+  const baselineStart = performance.now();
+  await call(0, "fill", { pageId, uid: searchUid, value: "youtube" });
+  await call(0, "press_key", { pageId, key: "Enter", includeSnapshot: true });
+  const baselineMs = Math.round(performance.now() - baselineStart);
+  assert.equal(new URL(page.url()).searchParams.get("q"), "youtube");
+  await page.goto(base);
+  await page.locator("#message").focus();
+  const combinedStart = performance.now();
+  const submitted = await call(0, "type_text", {
+    pageId,
+    text: "youtube",
+    submitKey: "Enter",
+    includeSnapshot: true,
+  });
+  const combinedMs = Math.round(performance.now() - combinedStart);
+  assert.equal(new URL(page.url()).searchParams.get("q"), "youtube");
+  assert.match(JSON.stringify(submitted), /Latest page snapshot/);
+  console.error("Search and snapshot", { baselineMs, combinedMs });
+  await page.evaluate(() => {
+    document.documentElement.style.transform = "translateX(-48px)";
+    document.body.style.minHeight = "200vh";
+    scrollTo(0, 120);
+  });
+  await activityBadge.waitFor({ state: "visible", timeout: 2000 });
+  const edges = await activityBadge.evaluate((badge) => {
+    const bounds = badge.getBoundingClientRect();
+    const viewport = document.documentElement;
+    return {
+      right: Math.round(viewport.clientWidth - bounds.right),
+      bottom: Math.round(viewport.clientHeight - bounds.bottom),
+    };
+  });
+  assert.deepEqual(edges, { right: 0, bottom: 0 });
+  await delay(1500);
+  assert.ok(
+    await activityBadge.isVisible(),
+    "Short actions must leave a readable indicator",
+  );
+  await activityBadge.waitFor({ state: "detached", timeout: 3500 });
+  await page.goto(base);
+  const sibling = await context.newPage();
+  await sibling.goto(base);
+  await page.bringToFront();
   await call(0, "extension_release_page", { pageId });
   await call(1, "take_snapshot", { pageId });
   await clients[1].close();
@@ -339,12 +402,20 @@ try {
   await page
     .locator('body[data-pause-started="yes"]')
     .waitFor({ timeout: 5000 });
+  await activityBadge.waitFor({ state: "visible", timeout: 2000 });
+  assert.equal(
+    await activityBadge.evaluate((el) => getComputedStyle(el).pointerEvents),
+    "none",
+  );
+  assert.equal(await sibling.locator("#cdp-browser-mcp-activity").count(), 0);
+  await page.screenshot({ path: "test-results/extension-activity.png" });
   await popup.getByRole("button", { name: "Pause all access" }).click();
   await popup
     .getByRole("status")
     .filter({ hasText: "Access paused" })
     .waitFor();
   await interrupted;
+  await activityBadge.waitFor({ state: "detached", timeout: 2000 });
   for (let i = 0; i < 100; i++) {
     const targets = await worker.evaluate(
       async () =>

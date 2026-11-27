@@ -42,19 +42,23 @@ jobs:
           destination = Path(os.environ["RUNNER_TEMP"])
           subprocess.run(["npm", "pack", "--pack-destination", str(destination)], check=True)
           archive = destination / f"cdp-browser-mcp-{package['version']}.tgz"
-          with tarfile.open(archive) as tgz:
-              names = set(tgz.getnames())
           required = {
               "package/dist/cli.js", "package/skills/cdp-browser-mcp/SKILL.md",
               "package/README.md", "package/CONTRIBUTING.md", "package/docs/deployment.md",
               "package/examples/config.json",
               "package/LICENSE", "package/NOTICE", "package/third_party/chrome-devtools-mcp-LICENSE",
               "package/extension/manifest.json", "package/extension/background.js",
-              "package/extension/popup.html", "package/dist/extension/host.js",
+              "package/extension/popup.html", "package/extension/activity.js",
+              "package/dist/extension/host.js", "package/dist/extension/activity.js",
               "package/dist/extension/setup.js", "package/docs/extension.md",
           }
-          if not required <= names:
-              raise SystemExit(f"Missing release files: {required - names}")
+          with tarfile.open(archive) as tgz:
+              names = set(tgz.getnames())
+              if not required <= names:
+                  raise SystemExit(f"Missing release files: {required - names}")
+              manifest = json.load(tgz.extractfile("package/extension/manifest.json"))
+              if manifest["version"] != package["version"]:
+                  raise SystemExit("Packaged extension and CLI versions must match")
           args = ["gh", "release", "create", os.environ["GITHUB_REF_NAME"], str(archive),
                   "--verify-tag", "--title", os.environ["GITHUB_REF_NAME"], "--generate-notes"]
           if "-" in package["version"]:

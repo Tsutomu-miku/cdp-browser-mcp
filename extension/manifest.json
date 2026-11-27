@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CDP Browser MCP",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Let local coding agents work in approved daily Chrome tabs without repeated remote-debugging approvals.",
   "minimum_chrome_version": "125",
   "permissions": ["debugger", "nativeMessaging", "tabs", "storage", "alarms"],
